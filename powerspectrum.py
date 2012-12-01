@@ -4,15 +4,30 @@
 # <codecell>
 
 import numpy as np
-import matplotlib
-matplotlib.use("PDF")
+from matplotlib import rcParams, rc
+params = {'backend': 'agg',
+          'axes.labelsize': 12,
+          'text.fontsize': 12,
+          'legend.fontsize': 12,
+          'xtick.labelsize': 12,
+          'ytick.major.pad': 6,
+          'xtick.major.pad': 6,
+          'ytick.labelsize': 12,
+          'text.usetex': True,
+          'font.family':'sans-serif',
+          'font.sans-serif':'FreeSans'}
+rc('text.latex', preamble='\usepackage{sfmath}')
+# for Helvetica you might need to install texlive-fonts-extra
+rcParams.update(params)
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+
 
 # <headingcell level=2>
 
 # Load data
 
-# <codecell>
+# <codecFreeSans>
 
 power_spectrum = np.loadtxt("data/bf_cbipap5_all.dat") # l, C_l
 
@@ -49,11 +64,6 @@ print odd[:3].astype(np.int)
 
 # <codecell>
 
-from matplotlib import rc
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':14})
-## for Palatino and other serif fonts use:
-#rc('font',**{'family':'serif','serif':['Palatino']})
-rc('text', usetex=True)
 
 # <headingcell level=2>
 
@@ -61,60 +71,67 @@ rc('text', usetex=True)
 
 # <codecell>
 
-fig = plt.figure(figsize=(8, 6))
-# this should be changed for making a panel of multiple figures
-ax = fig.add_subplot(111)
+def cm2inch(cm):
+    return cm *0.393701
 
-# maxima
-for ell_eff, ell_left, ell_right, C_ell, sigma_left, sigma_right in maxima:
-    # Rectangle gets the position of the bottom left corner as first argument,
-    # then width and height
-    rect = plt.Rectangle((ell_left, C_ell - sigma_left), ell_right-ell_left, sigma_left + sigma_right, facecolor="lightgrey", 
-edgecolor="white", alpha=.8)
-    ax.add_patch(rect)  
-# add label only to 1 rectangle
-rect.set_label("Maxima")
+width = 17.
+for width in [17., 12., 8.8]:
+    fig = plt.figure(figsize=(cm2inch(width), cm2inch(width*6/8.)))
+    # this should be changed for making a panel of multiple figures
+    ax = fig.add_subplot(111)
 
-# boomerang
-for ell_left, ell_right,C_ell,sigma in boomerang: # unpack row by row
-    # Rectangle gets the position of the bottom left corner as first argument,
-    # then width and height
-    rect = plt.Rectangle((ell_left, C_ell - sigma), ell_right-ell_left, 2*sigma, facecolor="grey", 
-edgecolor="white", alpha=.7)
-    ax.add_patch(rect)
-rect.set_label("Boomerang")
+    # maxima
+    for ell_eff, ell_left, ell_right, C_ell, sigma_left, sigma_right in maxima:
+        # Rectangle gets the position of the bottom left corner as first argument,
+        # then width and height
+        rect = plt.Rectangle((ell_left, C_ell - sigma_left), ell_right-ell_left, sigma_left + sigma_right, facecolor="lightgrey", 
+    edgecolor="white", alpha=.8)
+        ax.add_patch(rect)  
+    # add label only to 1 rectangle
+    rect.set_label("Maxima")
 
-    # dasi
-for ell_eff, ell_left, ell_right,C_ell,sigma in dasi:
-    # Rectangle gets the position of the bottom left corner as first argument,
-    # then width and height
-    rect = plt.Rectangle((ell_left, C_ell - sigma), ell_right-ell_left, 2*sigma, facecolor="magenta", 
-edgecolor="white", alpha=.5)
-    ax.add_patch(rect)
-rect.set_label("Dasi")
-   
-# power spectrum
-plt.plot(power_spectrum[:,0], power_spectrum[:,1], "k", label="Best fit")
+    # boomerang
+    for ell_left, ell_right,C_ell,sigma in boomerang: # unpack row by row
+        # Rectangle gets the position of the bottom left corner as first argument,
+        # then width and height
+        rect = plt.Rectangle((ell_left, C_ell - sigma), ell_right-ell_left, 2*sigma, facecolor="grey", 
+    edgecolor="white", alpha=.7)
+        ax.add_patch(rect)
+    rect.set_label("Boomerang")
 
-# errorbar
-plt.errorbar(even[:,2], even[:,3], even[:,4], (even[:,1]-even[:,0])/2., fmt='gs', label="CBI: even") # green squares
-plt.errorbar(odd[:,2], odd[:,3], odd[:,4], (odd[:,1]-odd[:,0])/2., fmt='bo', label="CBI: odd") # blue circles
-    
-# x axis
-plt.hlines(0, 0, 3000)
+        # dasi
+    for ell_eff, ell_left, ell_right,C_ell,sigma in dasi:
+        # Rectangle gets the position of the bottom left corner as first argument,
+        # then width and height
+        rect = plt.Rectangle((ell_left, C_ell - sigma), ell_right-ell_left, 2*sigma, facecolor="magenta", 
+    edgecolor="white", alpha=.5)
+        ax.add_patch(rect)
+    rect.set_label("Dasi")
+       
+    # power spectrum
+    plt.plot(power_spectrum[:,0], power_spectrum[:,1], "k", label="Best fit")
 
-# legend
-plt.legend()
+    # errorbar
+    plt.errorbar(even[:,2], even[:,3], even[:,4], (even[:,1]-even[:,0])/2., fmt='gs', label="CBI: even") # green squares
+    plt.errorbar(odd[:,2], odd[:,3], odd[:,4], (odd[:,1]-odd[:,0])/2., fmt='bo', label="CBI: odd") # blue circles
+        
+    # x axis
+    plt.hlines(0, 0, 3000)
 
-# labels
-plt.xlabel("$\ell$"); plt.ylabel("$\ell(\ell+1)C_\ell / 2\pi  [ \mu K^2]$")
-plt.ylim([-1000, 8000]); plt.xlim([0, 3000]);
-# set vertical y axis ticklables
-for ticklabel in ax.yaxis.get_ticklabels():
-    ticklabel.set_rotation("vertical")
+    # legend
+    plt.legend(frameon=False)
 
-plt.savefig("testb/powerspectrum.pdf", bbox_inches='tight')
+    # labels
+    plt.xlabel(r"$\ell$"); plt.ylabel(r"$\ell(\ell+1)C_\ell / 2\pi \:  \left[ \mu K^2 \right]$")
+    ax.yaxis.labelpad = 10*width/17.; ax.xaxis.labelpad = 10*width/17. # distance of axis label to tick labels
+    if width < 10:
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+    plt.ylim([-1000, 7500]); plt.xlim([0, 3000]);
+    plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    # set vertical y axis ticklables
+    for ticklabel in ax.yaxis.get_ticklabels():
+        ticklabel.set_rotation("vertical")
 
-# <codecell>
+    plt.savefig("testb/powerspectrum_%dmm.pdf" % int(width*10), bbox_inches='tight')
 
-
+    # <codecell>
