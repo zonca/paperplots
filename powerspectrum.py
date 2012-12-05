@@ -54,11 +54,7 @@ print odd[:3].astype(np.int)
 
 # <codecell>
 
-def cm2inch(cm):
-    return cm *0.393701
-
-width = 17.
-for width in [17., 12., 8.8]:
+for width in [18., 12., 8.8]:
     fig = plt.figure(figsize=(cm2inch(width), cm2inch(width*6/8.)))
     # this should be changed for making a panel of multiple figures
     ax = fig.add_subplot(111)

@@ -15,6 +15,8 @@
 \usepackage{txfonts}
 \usepackage{natbib}
 
+\newcommand{\sometext}{\Planck text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text}
+
 \bibpunct{(}{)}{;}{a}{}{,}
 
 \begin{document}
@@ -37,11 +39,11 @@
 
 \maketitle
 
-\newpage
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Introduction}
+\section{Power spectrum}
+
+\sometext
 
 \begin{figure}[h]
 \centering
@@ -49,9 +51,7 @@
 \caption{\label{fig:gainCurve} 8.8cm wide} 
 \end{figure}
 
-\Planck text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
-
-\Planck text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
+\sometext
 
 \begin{figure*}[h]
 \centering
@@ -61,14 +61,46 @@
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=17cm]{powerspectrum_170mm.pdf}
-\caption{\label{fig:gainCurve} Figure created at 17cm wide and setting  width=17cm in includegraphics}
+\includegraphics[width=18cm]{powerspectrum_180mm.pdf}
+\caption{\label{fig:gainCurve} Figure created at 18cm wide and setting  width=18cm in includegraphics}
 \end{figure*}
 
-\begin{figure*}[t]
+\clearpage
+
+\section{Mollview}
+
+\sometext
+
+\begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{powerspectrum_170mm.pdf}
-\caption{\label{fig:gainCurve} Figure included with width = \ textwidth}
+\includegraphics[width=8.8cm]{mollview_88mm}
+\caption{\label{fig:gainCurve} 8.8cm wide} 
+\end{figure}
+
+\sometext
+
+\sometext
+
+\sometext
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width=12cm]{mollview_120mm}
+\caption{\label{fig:gainCurve} 12cm wide} 
+\end{figure*}
+
+
+\begin{figure*}[H!b]
+\centering
+\includegraphics[width=18cm]{mollview_180mm}
+\caption{\label{fig:gainCurve} Mollview}
+\end{figure*}
+
+
+\begin{figure*}[H!b]
+\centering
+\includegraphics[width=17cm]{params}
+\caption{\label{fig:gainCurve} Parameters}
 \end{figure*}
 
 \end{document}

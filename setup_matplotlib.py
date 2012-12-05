@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import rcParams, rc
-params = {'backend': 'agg',
+params = {'backend': 'pdf',
           'axes.labelsize': 12,
           'text.fontsize': 12,
           'legend.fontsize': 12,
@@ -12,7 +12,9 @@ params = {'backend': 'agg',
           'font.family':'sans-serif',
           'font.sans-serif':'FreeSans'}
 rc('text.latex', preamble='\usepackage{sfmath}')
-# for Helvetica you might need to install texlive-fonts-extra
 rcParams.update(params)
 import matplotlib.pyplot as plt
+
+def cm2inch(cm):
+    return cm *0.393701
 
