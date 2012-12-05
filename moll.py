@@ -42,4 +42,4 @@ for width in [18., 12., 8.8]:
     # remove horizontal grid
     # ax.xaxis.set_ticks([])
     plt.grid(True)
-    plt.savefig("testb/mollview_%dmm.pdf" % int(width*10), bbox_inches='tight')
+    plt.savefig("latex/mollview_%dmm.pdf" % int(width*10), bbox_inches='tight')
