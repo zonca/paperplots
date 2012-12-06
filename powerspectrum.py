@@ -95,7 +95,7 @@ for width in [18., 12., 8.8]:
     plt.errorbar(odd[:,2], odd[:,3], odd[:,4], (odd[:,1]-odd[:,0])/2., fmt='bo', label="CBI: odd") # blue circles
         
     # x axis
-    plt.hlines(0, 0, 3000)
+    plt.hlines(0, 0, 3300)
 
     # legend
     plt.legend(frameon=False)
@@ -105,7 +105,7 @@ for width in [18., 12., 8.8]:
     ax.yaxis.labelpad = 10*width/17.; ax.xaxis.labelpad = 10*width/17. # distance of axis label to tick labels
     if width < 10:
         ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
-    plt.ylim([-1000, 7500]); plt.xlim([0, 3000]);
+    plt.ylim([-1000, 7500]); plt.xlim([0, 3300]);
     plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
     # set vertical y axis ticklables
     for ticklabel in ax.yaxis.get_ticklabels():

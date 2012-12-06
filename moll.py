@@ -34,9 +34,14 @@ for width in [18., 12., 8.8]:
     ax.set_longitude_grid(60)
     if width < 10:
         ax.set_latitude_grid(45)
-    cb.ax.text(0.5,-1.0,unit, transform=cb.ax.transAxes,ha='center',va='center')
+        ax.set_longitude_grid_ends(90)
+    cb.ax.xaxis.set_label_text(unit)
+    cb.ax.xaxis.labelpad = -8
     # workaround for issue with viewers, see colorbar docstring
     cb.solids.set_edgecolor("face")
+
+    ax.tick_params(axis='x', labelsize=10)
+    ax.tick_params(axis='y', labelsize=10)
     # remove longitude tick labels
     # ax.xaxis.set_ticklabels([])
     # remove horizontal grid

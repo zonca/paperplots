@@ -1,13 +1,13 @@
 import numpy as np
 from matplotlib import rcParams, rc
 params = {'backend': 'pdf',
-          'axes.labelsize': 12,
-          'text.fontsize': 12,
-          'legend.fontsize': 12,
-          'xtick.labelsize': 12,
+          'axes.labelsize': 10,
+          'text.fontsize': 10,
+          'legend.fontsize': 10,
+          'xtick.labelsize': 10,
           'ytick.major.pad': 6,
           'xtick.major.pad': 6,
-          'ytick.labelsize': 12,
+          'ytick.labelsize': 10,
           'text.usetex': True,
           'font.family':'sans-serif',
           'font.sans-serif':'FreeSans'}
