@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import rcParams, rc
+
+# common setup for matplotlib
 params = {'backend': 'pdf',
           'axes.labelsize': 10,
           'text.fontsize': 10,
@@ -10,11 +12,16 @@ params = {'backend': 'pdf',
           'ytick.labelsize': 10,
           'text.usetex': True,
           'font.family':'sans-serif',
+          # free font similar to Helvetica
           'font.sans-serif':'FreeSans'}
+
+# use of Sans Serif also in math mode
 rc('text.latex', preamble='\usepackage{sfmath}')
+
 rcParams.update(params)
+
 import matplotlib.pyplot as plt
 
 def cm2inch(cm):
+    """Centimeters to inches"""
     return cm *0.393701
-

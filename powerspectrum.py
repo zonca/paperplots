@@ -78,7 +78,7 @@ for width in [18., 12., 8.8]:
         ax.add_patch(rect)
     rect.set_label("Boomerang")
 
-        # dasi
+    # dasi
     for ell_eff, ell_left, ell_right,C_ell,sigma in dasi:
         # Rectangle gets the position of the bottom left corner as first argument,
         # then width and height
@@ -103,10 +103,17 @@ for width in [18., 12., 8.8]:
     # labels
     plt.xlabel(r"$\ell$"); plt.ylabel(r"$\ell(\ell+1)C_\ell / 2\pi \:  \left[ \mu K^2 \right]$")
     ax.yaxis.labelpad = 10*width/17.; ax.xaxis.labelpad = 10*width/17. # distance of axis label to tick labels
+
+    # reduce ticks for small figures
     if width < 10:
         ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+    
+    # axes limits
     plt.ylim([-1000, 7500]); plt.xlim([0, 3300]);
+
+    # reduce white space around figure
     plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+
     # set vertical y axis ticklables
     for ticklabel in ax.yaxis.get_ticklabels():
         ticklabel.set_rotation("vertical")
