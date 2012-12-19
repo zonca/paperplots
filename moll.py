@@ -17,15 +17,15 @@ m = hp.read_map("data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)
 nside = hp.npix2nside(len(m))
 xsize = 2000
 ysize = xsize/2.
-unit = "mK"
-vmin = -1; vmax = 1
+unit = r"$\mu K$"
+vmin = -1e3; vmax = 1e3
 theta = np.linspace(np.pi, 0, ysize)
 phi   = np.linspace(-np.pi, np.pi, xsize)
 longitude = np.radians(np.linspace(-180, 180, xsize))
 latitude = np.radians(np.linspace(-90, 90, ysize))
 PHI, THETA = np.meshgrid(phi, theta)
 # map on a matrix
-grid_map = m[hp.ang2pix(nside, THETA, PHI)]
+grid_map = m[hp.ang2pix(nside, THETA, PHI)] * 1e3
 
 for width in [18., 12., 8.8]:
     fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
