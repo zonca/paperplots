@@ -85,7 +85,7 @@ for width in [18., 12., 8.8]:
         rect = plt.Rectangle((ell_left, C_ell - sigma), ell_right-ell_left, 2*sigma, facecolor="magenta", 
     edgecolor="white", alpha=.5)
         ax.add_patch(rect)
-    rect.set_label("Dasi")
+    rect.set_label("DASI")
        
     # power spectrum
     plt.plot(power_spectrum[:,0], power_spectrum[:,1], "k", label="Best fit")
@@ -101,7 +101,7 @@ for width in [18., 12., 8.8]:
     plt.legend(frameon=False)
 
     # labels
-    plt.xlabel(r"$\ell$"); plt.ylabel(r"$\ell(\ell+1)C_\ell / 2\pi \:  \left[ \mu K^2 \right]$")
+    plt.xlabel(r"$\ell$"); plt.ylabel(r"$\ell(\ell+1)C_\ell / 2\pi \:  \left[ \mu \mathrm{K}^2 \right]$")
     ax.yaxis.labelpad = 10*width/17.; ax.xaxis.labelpad = 10*width/17. # distance of axis label to tick labels
 
     # reduce ticks for small figures
