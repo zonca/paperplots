@@ -1,0 +1,7 @@
+1  ../../Inifile_p4/Params/lcdm+tens.ini 
+2  ../../Inifile_p4/Likes/wmap.ini 
+3  ../../Cov_32_new/q32_lcdm+tens_wmap5 
+4  ../../Inifile_p4/Starts/start_lcdm+tens.ini 
+5  ../../Output_jo/v4a4+a/lcdm+lz+tens_wmap5.txt 
+6  ../../Output_new/v4a4+a/lcdm+lz+tens/wmap5/chain1/ 
+7  ../../Output_new/v4a4+a/lcdm+lz+tens/wmap5/chain1/ 

@@ -1,0 +1,665 @@
+%Planck style file, to be used with A&A style to produce Planck papers for publication.
+%
+% version 28 September 2010 --- useful macros --- CRL
+% version 17 October 2010   --- first cut at important instrument values, from Daniele Mennella and
+%                               Francois Bouchet, 13 October 2010 --- CRL
+% version 18 October 2010   --- LFI FWHM changed to one value per feed, rather than M & S separately
+%                               LFI FWHM uncertainties added for individual feeds.  Corrections made
+%                               to LFI values. --- Andrea Zacchei
+% version 24 October 2010   --- added to and corrected definitions. No changes made to instrument
+%                               quantities. --- CRL
+% version 31 October 2010   --- added definition of \muKHz. --- CRL
+%
+% version 15 November 2010  --- fixed conflict with aa.cls in definition of \endtable
+%                               by naming the command below "\endPlancktable".  See section
+%                               13.16 of the Style Guide.
+%
+% version 06 December 2010  --- Set up names with and without units.
+%                               Add \allearlypapers command to ensure that all early papers are
+%                               included in the reference list.
+%                               Define macro for the name of the 4He JT cooler.
+%
+% version 07 December 2010  --- removed extraneous "planck2011-1.2" entry in \allearlypapers
+%
+% version 12 December 2010  --- added \endPlancktablewide command to set tablenotes to the full
+%                               page width in the \begin{table*}...\end{table*} environment when
+%                               the ``twocolumn'' option is specified in the \documentclass command.
+%                               (It would be more elegant to extract the appropriate width from the
+%                               aa.cls system at the time of execution, but that is buried more
+%                               deeply in the system than I investigated.)
+%
+% version 05 January 2011   --- added unit \MJysr.  HFI performance values updated per FRB email
+%                               01/05/2011 02:38-0800, and Brendan Crill email 01/05/2011 18:08 -0800.
+%
+% version 06 January 2011   --- changed \scriptscriptstyle primes to \scriptstyle, to better match the
+%                               tx fonts used by A&A.
+%
+% version 07 January 2011   --- modified \allearlypapers to correspond with final early paper list.
+%                               Fixed 545 GHz center frequency.
+%
+% version 07 January 2011b  --- changed LFI white-noise sensitivity numbers to correct problem with units
+%
+% version 05 July 2011      --- added \Msol and \Lsol to get the symbols for solar mass and luminosity.
+%                               Deleted previous definitions of \solar and \sol, which were equivalent
+%                               to the new \Msol.
+%
+% version 16 August 2011    --- changed comments on \endPlancktable and \endPlancktablewide for clarity
+%
+% version 11 September 2011 --- changed definition of \tablenote to make footnote labels italic, as per A\&A
+%
+% version 26 April 2012     --- changed definition of \Planck to agree with what is said in the Style Guide (!)
+%
+% Usage:  after the \documentclass[traditabstract]{aa} command in the La\TeX\ input file,
+%         add this command:      \input Planck.tex
+%         To insert a defined value in the file, use \getsymbol{parameter name}, for example
+%         \getsymbol{\setsymbol{LFI:center:frequency:70GHz}} will produce the center
+%         frequency of the LFI 70 GHz channel.
+
+
+\def\setsymbol#1#2{\expandafter\def\csname #1\endcsname{#2}}
+\def\getsymbol#1{\csname #1\endcsname}
+
+%-----------------------------------------------------------------------
+% Planck
+%-----------------------------------------------------------------------
+\def\Planck{\textit{Planck}}
+
+%-----------------------------------------------------------------------
+% The Planck Helium-4 JT cooler
+%-----------------------------------------------------------------------
+\def\HeJT{$^4$He-JT}
+
+%-----------------------------------------------------------------------
+% To include all Planck Early Results papers in the reference lists
+%-----------------------------------------------------------------------
+\def\allearlypapers{\nocite{planck2011-1.1, planck2011-1.3, 
+planck2011-1.4, planck2011-1.5, planck2011-1.6, planck2011-1.7, 
+planck2011-1.10, planck2011-1.10sup, planck2011-5.1a, 
+planck2011-5.1b, planck2011-5.2a, planck2011-5.2b, planck2011-5.2c, 
+planck2011-6.1, planck2011-6.2, planck2011-6.3a, planck2011-6.4a, 
+planck2011-6.4b, planck2011-6.6, planck2011-7.0, planck2011-7.2, 
+planck2011-7.3, planck2011-7.7a, planck2011-7.7b, planck2011-7.12, 
+planck2011-7.13}}
+
+%-----------------------------------------------------------------------
+% Tables
+%-----------------------------------------------------------------------
+\newbox\tablebox    \newdimen\tablewidth
+\def\leaderfil{\leaders\hbox to 5pt{\hss.\hss}\hfil}
+%
+% use the following definition of \endPlancktable for ApJ style notes to tables, set to the
+%         width of the table
+% \def\endPlancktable{\tablewidth=\wd\tablebox
+%
+% use the following definitions of \endPlancktable and \endPlancktablewide for A&A style notes
+% set to one-column  or full-page width, respectively
+\def\endPlancktable{\tablewidth=\columnwidth
+     $$\hss\copy\tablebox\hss$$
+     \vskip-\lastskip\vskip -2pt}
+\def\endPlancktablewide{\tablewidth=\textwidth
+     $$\hss\copy\tablebox\hss$$
+     \vskip-\lastskip\vskip -2pt}
+\def\tablenote#1 #2\par{\begingroup \parindent=0.8em
+     \abovedisplayshortskip=0pt\belowdisplayshortskip=0pt
+     \noindent
+     $$\hss\vbox{\hsize\tablewidth \hangindent=\parindent \hangafter=1 \noindent
+     \hbox to \parindent{$^#1$\hss}\strut#2\strut\par}\hss$$
+     \endgroup}
+\def\doubleline{\vskip 3pt\hrule \vskip 1.5pt \hrule \vskip 5pt}
+
+%-----------------------------------------------------------------------
+% useful macros
+%-----------------------------------------------------------------------
+%
+\def\L2{\ifmmode L_2\else $L_2$\fi}
+%
+\def\dtt{\Delta T/T}
+\def\DeltaT{\ifmmode \Delta T\else $\Delta T$\fi}
+\def\deltat{\ifmmode \Delta t\else $\Delta t$\fi}
+\def\fknee{\ifmmode f_{\rm knee}\else $f_{\rm knee}$\fi}
+\def\Fmax{\ifmmode F_{\rm max}\else $F_{\rm max}$\fi}
+%
+\def\solar{\ifmmode{\rm M}_{\mathord\odot}\else${\rm M}_{\mathord\odot}$\fi}
+\def\Msolar{\ifmmode{\rm M}_{\mathord\odot}\else${\rm M}_{\mathord\odot}$\fi}
+\def\Lsolar{\ifmmode{\rm L}_{\mathord\odot}\else${\rm L}_{\mathord\odot}$\fi}
+\def\mag{\sup{m}}
+%
+\def\inv{\ifmmode^{-1}\else$^{-1}$\fi}
+\def\mo{\ifmmode^{-1}\else$^{-1}$\fi}
+\def\sup#1{\ifmmode ^{\rm #1}\else $^{\rm #1}$\fi}
+\def\expo#1{\ifmmode \times 10^{#1}\else $\times 10^{#1}$\fi}
+%
+\def\,{\thinspace}
+\def\lsim{\mathrel{\raise .4ex\hbox{\rlap{$<$}\lower 1.2ex\hbox{$\sim$}}}}
+\def\gsim{\mathrel{\raise .4ex\hbox{\rlap{$>$}\lower 1.2ex\hbox{$\sim$}}}}
+\let\lea=\lsim
+\let\gea=\gsim
+\def\simprop{\mathrel{\raise .4ex\hbox{\rlap{$\propto$}\lower 
+1.2ex\hbox{$\sim$}}}}
+%
+\def\deg{\ifmmode^\circ\else$^\circ$\fi}
+\def\pdeg{\ifmmode $\setbox0=\hbox{$^{\circ}$}\rlap{\hskip.11\wd0 .}$^{\circ}
+           \else \setbox0=\hbox{$^{\circ}$}\rlap{\hskip.11\wd0 .}$^{\circ}$\fi}
+\def\arcs{\ifmmode {^{\scriptstyle\prime\prime}}
+           \else $^{\scriptstyle\prime\prime}$\fi}
+\def\arcm{\ifmmode {^{\scriptstyle\prime}}
+           \else $^{\scriptstyle\prime}$\fi}
+\newdimen\sa  \newdimen\sb
+\def\parcs{\sa=.07em \sb=.03em
+      \ifmmode \hbox{\rlap{.}}^{\scriptstyle\prime\kern 
+-\sb\prime}\hbox{\kern -\sa}
+      \else \rlap{.}$^{\scriptstyle\prime\kern -\sb\prime}$\kern -\sa\fi}
+\def\parcm{\sa=.08em \sb=.03em
+      \ifmmode \hbox{\rlap{.}\kern\sa}^{\scriptstyle\prime}\hbox{\kern-\sb}
+      \else \rlap{.}\kern\sa$^{\scriptstyle\prime}$\kern-\sb\fi}
+%
+\def\ra[#1 #2 #3.#4]{#1\sup{h}#2\sup{m}#3\sup{s}\llap.#4}
+\def\dec[#1 #2 #3.#4]{#1\deg#2\arcm#3\arcs\llap.#4}
+\def\deco[#1 #2 #3]{#1\deg#2\arcm#3\arcs}
+\def\rra[#1 #2]{#1\sup{h}#2\sup{m}}
+%
+\def\page{\vfill\eject}
+\def\dots{\relax\ifmmode \ldots\else $\ldots$\fi}
+%
+%-----------------------------------------------------------------------
+% units
+%-----------------------------------------------------------------------
+%
+\def\WHzsr{\ifmmode $W\,Hz\mo\,sr\mo$\else W\,Hz\mo\,sr\mo\fi}
+\def\mHz{\ifmmode $\,mHz$\else \,mHz\fi}
+\def\GHz{\ifmmode $\,GHz$\else \,GHz\fi}
+\def\mKs{\ifmmode $\,mK\,s$^{1/2}\else \,mK\,s$^{1/2}$\fi}
+\def\muKs{\ifmmode \,\mu$K\,s$^{1/2}\else \,$\mu$K\,s$^{1/2}$\fi}
+\def\muKRJs{\ifmmode \,\mu$K$_{\rm RJ}$\,s$^{1/2}\else \,$\mu$K$_{\rm 
+RJ}$\,s$^{1/2}$\fi}
+\def\muKHz{\ifmmode \,\mu$K\,Hz$^{-1/2}\else \,$\mu$K\,Hz$^{-1/2}$\fi}
+\def\MJysr{\ifmmode \,$MJy\,sr\mo$\else \,MJy\,sr\mo\fi}
+\def\MJysrmK{\ifmmode \,$MJy\,sr\mo$\,mK$_{\rm CMB}\mo\else 
+\,MJy\,sr\mo\,mK$_{\rm CMB}\mo$\fi}
+\def\microns{\ifmmode \,\mu$m$\else \,$\mu$m\fi}
+\def\micron{\microns}
+\def\muK{\ifmmode \,\mu$K$\else \,$\mu$\hbox{K}\fi}
+\def\microK{\ifmmode \,\mu$K$\else \,$\mu$\hbox{K}\fi}
+\def\muW{\ifmmode \,\mu$W$\else \,$\mu$\hbox{W}\fi}
+\def\kms{\ifmmode $\,km\,s$^{-1}\else \,km\,s$^{-1}$\fi}
+\def\kmsMpc{\ifmmode $\,\kms\,Mpc\mo$\else \,\kms\,Mpc\mo\fi}
+%
+%
+%----------------------------------------------------------------------
+
+
+% LFI Center Frequency
+
+\setsymbol{LFI:center:frequency:70GHz:units}{70.3\,GHz}
+\setsymbol{LFI:center:frequency:44GHz:units}{44.1\,GHz}
+\setsymbol{LFI:center:frequency:30GHz:units}{28.5\,GHz}
+
+\setsymbol{LFI:center:frequency:70GHz}{70.3}
+\setsymbol{LFI:center:frequency:44GHz}{44.1}
+\setsymbol{LFI:center:frequency:30GHz}{28.5}
+
+\setsymbol{LFI:center:frequency:LFI18:Rad:M:units}{71.7\GHz}
+\setsymbol{LFI:center:frequency:LFI19:Rad:M:units}{67.5\GHz}
+\setsymbol{LFI:center:frequency:LFI20:Rad:M:units}{69.2\GHz}
+\setsymbol{LFI:center:frequency:LFI21:Rad:M:units}{70.4\GHz}
+\setsymbol{LFI:center:frequency:LFI22:Rad:M:units}{71.5\GHz}
+\setsymbol{LFI:center:frequency:LFI23:Rad:M:units}{70.8\GHz}
+\setsymbol{LFI:center:frequency:LFI24:Rad:M:units}{44.4\GHz}
+\setsymbol{LFI:center:frequency:LFI25:Rad:M:units}{44.0\GHz}
+\setsymbol{LFI:center:frequency:LFI26:Rad:M:units}{43.9\GHz}
+\setsymbol{LFI:center:frequency:LFI27:Rad:M:units}{28.3\GHz}
+\setsymbol{LFI:center:frequency:LFI28:Rad:M:units}{28.8\GHz}
+\setsymbol{LFI:center:frequency:LFI18:Rad:S:units}{70.1\GHz}
+\setsymbol{LFI:center:frequency:LFI19:Rad:S:units}{69.6\GHz}
+\setsymbol{LFI:center:frequency:LFI20:Rad:S:units}{69.5\GHz}
+\setsymbol{LFI:center:frequency:LFI21:Rad:S:units}{69.5\GHz}
+\setsymbol{LFI:center:frequency:LFI22:Rad:S:units}{72.8\GHz}
+\setsymbol{LFI:center:frequency:LFI23:Rad:S:units}{71.3\GHz}
+\setsymbol{LFI:center:frequency:LFI24:Rad:S:units}{44.1\GHz}
+\setsymbol{LFI:center:frequency:LFI25:Rad:S:units}{44.1\GHz}
+\setsymbol{LFI:center:frequency:LFI26:Rad:S:units}{44.1\GHz}
+\setsymbol{LFI:center:frequency:LFI27:Rad:S:units}{28.5\GHz}
+\setsymbol{LFI:center:frequency:LFI28:Rad:S:units}{28.2\GHz}
+
+\setsymbol{LFI:center:frequency:LFI18:Rad:M}{71.7}
+\setsymbol{LFI:center:frequency:LFI19:Rad:M}{67.5}
+\setsymbol{LFI:center:frequency:LFI20:Rad:M}{69.2}
+\setsymbol{LFI:center:frequency:LFI21:Rad:M}{70.4}
+\setsymbol{LFI:center:frequency:LFI22:Rad:M}{71.5}
+\setsymbol{LFI:center:frequency:LFI23:Rad:M}{70.8}
+\setsymbol{LFI:center:frequency:LFI24:Rad:M}{44.4}
+\setsymbol{LFI:center:frequency:LFI25:Rad:M}{44.0}
+\setsymbol{LFI:center:frequency:LFI26:Rad:M}{43.9}
+\setsymbol{LFI:center:frequency:LFI27:Rad:M}{28.3}
+\setsymbol{LFI:center:frequency:LFI28:Rad:M}{28.8}
+\setsymbol{LFI:center:frequency:LFI18:Rad:S}{70.1}
+\setsymbol{LFI:center:frequency:LFI19:Rad:S}{69.6}
+\setsymbol{LFI:center:frequency:LFI20:Rad:S}{69.5}
+\setsymbol{LFI:center:frequency:LFI21:Rad:S}{69.5}
+\setsymbol{LFI:center:frequency:LFI22:Rad:S}{72.8}
+\setsymbol{LFI:center:frequency:LFI23:Rad:S}{71.3}
+\setsymbol{LFI:center:frequency:LFI24:Rad:S}{44.1}
+\setsymbol{LFI:center:frequency:LFI25:Rad:S}{44.1}
+\setsymbol{LFI:center:frequency:LFI26:Rad:S}{44.1}
+\setsymbol{LFI:center:frequency:LFI27:Rad:S}{28.5}
+\setsymbol{LFI:center:frequency:LFI28:Rad:S}{28.2}
+
+
+% LFI White Noise Sensitivity, \delta T_{\rm RJ}
+
+\setsymbol{LFI:white:noise:sensitivity:70GHz:units}{134.7\muKs}
+\setsymbol{LFI:white:noise:sensitivity:44GHz:units}{164.7\muKs}
+\setsymbol{LFI:white:noise:sensitivity:30GHz:units}{143.4\muKs}
+
+\setsymbol{LFI:white:noise:sensitivity:70GHz}{134.7}
+\setsymbol{LFI:white:noise:sensitivity:44GHz}{164.7}
+\setsymbol{LFI:white:noise:sensitivity:30GHz}{143.4}
+
+%***************the following are in \delta T_{\rm CMB} units!****************
+%***************this segment should be revised********************************
+
+\setsymbol{LFI:white:noise:sensitivity:LFI18:Rad:M:units}{512.0\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI19:Rad:M:units}{581.4\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI20:Rad:M:units}{590.8\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI21:Rad:M:units}{455.2\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI22:Rad:M:units}{492.0\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI23:Rad:M:units}{507.7\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI24:Rad:M:units}{462.2\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI25:Rad:M:units}{413.6\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI26:Rad:M:units}{478.6\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI27:Rad:M:units}{277.7\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI28:Rad:M:units}{312.3\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI18:Rad:S:units}{465.7\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI19:Rad:S:units}{555.6\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI20:Rad:S:units}{623.2\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI21:Rad:S:units}{564.1\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI22:Rad:S:units}{534.4\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI23:Rad:S:units}{542.4\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI24:Rad:S:units}{399.2\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI25:Rad:S:units}{392.6\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI26:Rad:S:units}{418.6\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI27:Rad:S:units}{302.9\muKs}
+\setsymbol{LFI:white:noise:sensitivity:LFI28:Rad:S:units}{285.3\muKs}
+
+\setsymbol{LFI:white:noise:sensitivity:LFI18:Rad:M}{512.0}
+\setsymbol{LFI:white:noise:sensitivity:LFI19:Rad:M}{581.4}
+\setsymbol{LFI:white:noise:sensitivity:LFI20:Rad:M}{590.8}
+\setsymbol{LFI:white:noise:sensitivity:LFI21:Rad:M}{455.2}
+\setsymbol{LFI:white:noise:sensitivity:LFI22:Rad:M}{492.0}
+\setsymbol{LFI:white:noise:sensitivity:LFI23:Rad:M}{507.7}
+\setsymbol{LFI:white:noise:sensitivity:LFI24:Rad:M}{462.2}
+\setsymbol{LFI:white:noise:sensitivity:LFI25:Rad:M}{413.6}
+\setsymbol{LFI:white:noise:sensitivity:LFI26:Rad:M}{478.6}
+\setsymbol{LFI:white:noise:sensitivity:LFI27:Rad:M}{277.7}
+\setsymbol{LFI:white:noise:sensitivity:LFI28:Rad:M}{312.3}
+\setsymbol{LFI:white:noise:sensitivity:LFI18:Rad:S}{465.7}
+\setsymbol{LFI:white:noise:sensitivity:LFI19:Rad:S}{555.6}
+\setsymbol{LFI:white:noise:sensitivity:LFI20:Rad:S}{623.2}
+\setsymbol{LFI:white:noise:sensitivity:LFI21:Rad:S}{564.1}
+\setsymbol{LFI:white:noise:sensitivity:LFI22:Rad:S}{534.4}
+\setsymbol{LFI:white:noise:sensitivity:LFI23:Rad:S}{542.4}
+\setsymbol{LFI:white:noise:sensitivity:LFI24:Rad:S}{399.2}
+\setsymbol{LFI:white:noise:sensitivity:LFI25:Rad:S}{392.6}
+\setsymbol{LFI:white:noise:sensitivity:LFI26:Rad:S}{418.6}
+\setsymbol{LFI:white:noise:sensitivity:LFI27:Rad:S}{302.9}
+\setsymbol{LFI:white:noise:sensitivity:LFI28:Rad:S}{285.3}
+
+
+% LFI Knee Frequency
+
+\setsymbol{LFI:knee:frequency:70GHz:units}{29.5\mHz}
+\setsymbol{LFI:knee:frequency:44GHz:units}{56.2\mHz}
+\setsymbol{LFI:knee:frequency:30GHz:units}{113.7\mHz}
+
+\setsymbol{LFI:knee:frequency:70GHz}{29.5}
+\setsymbol{LFI:knee:frequency:44GHz}{56.2}
+\setsymbol{LFI:knee:frequency:30GHz}{113.7}
+
+\setsymbol{LFI:knee:frequency:LFI18:Rad:M:units}{16.3\mHz}
+\setsymbol{LFI:knee:frequency:LFI19:Rad:M:units}{15.1\mHz}
+\setsymbol{LFI:knee:frequency:LFI20:Rad:M:units}{18.7\mHz}
+\setsymbol{LFI:knee:frequency:LFI21:Rad:M:units}{37.2\mHz}
+\setsymbol{LFI:knee:frequency:LFI22:Rad:M:units}{12.7\mHz}
+\setsymbol{LFI:knee:frequency:LFI23:Rad:M:units}{34.6\mHz}
+\setsymbol{LFI:knee:frequency:LFI24:Rad:M:units}{46.2\mHz}
+\setsymbol{LFI:knee:frequency:LFI25:Rad:M:units}{24.9\mHz}
+\setsymbol{LFI:knee:frequency:LFI26:Rad:M:units}{67.6\mHz}
+\setsymbol{LFI:knee:frequency:LFI27:Rad:M:units}{187.4\mHz}
+\setsymbol{LFI:knee:frequency:LFI28:Rad:M:units}{122.2\mHz}
+\setsymbol{LFI:knee:frequency:LFI18:Rad:S:units}{17.7\mHz}
+\setsymbol{LFI:knee:frequency:LFI19:Rad:S:units}{22.0\mHz}
+\setsymbol{LFI:knee:frequency:LFI20:Rad:S:units}{8.7\mHz}
+\setsymbol{LFI:knee:frequency:LFI21:Rad:S:units}{25.9\mHz}
+\setsymbol{LFI:knee:frequency:LFI22:Rad:S:units}{15.8\mHz}
+\setsymbol{LFI:knee:frequency:LFI23:Rad:S:units}{129.8\mHz}
+\setsymbol{LFI:knee:frequency:LFI24:Rad:S:units}{100.9\mHz}
+\setsymbol{LFI:knee:frequency:LFI25:Rad:S:units}{38.9\mHz}
+\setsymbol{LFI:knee:frequency:LFI26:Rad:S:units}{58.9\mHz}
+\setsymbol{LFI:knee:frequency:LFI27:Rad:S:units}{104.4\mHz}
+\setsymbol{LFI:knee:frequency:LFI28:Rad:S:units}{40.7\mHz}
+
+\setsymbol{LFI:knee:frequency:LFI18:Rad:M}{16.3}
+\setsymbol{LFI:knee:frequency:LFI19:Rad:M}{15.1}
+\setsymbol{LFI:knee:frequency:LFI20:Rad:M}{18.7}
+\setsymbol{LFI:knee:frequency:LFI21:Rad:M}{37.2}
+\setsymbol{LFI:knee:frequency:LFI22:Rad:M}{12.7}
+\setsymbol{LFI:knee:frequency:LFI23:Rad:M}{34.6}
+\setsymbol{LFI:knee:frequency:LFI24:Rad:M}{46.2}
+\setsymbol{LFI:knee:frequency:LFI25:Rad:M}{24.9}
+\setsymbol{LFI:knee:frequency:LFI26:Rad:M}{67.6}
+\setsymbol{LFI:knee:frequency:LFI27:Rad:M}{187.4}
+\setsymbol{LFI:knee:frequency:LFI28:Rad:M}{122.2}
+\setsymbol{LFI:knee:frequency:LFI18:Rad:S}{17.7}
+\setsymbol{LFI:knee:frequency:LFI19:Rad:S}{22.0}
+\setsymbol{LFI:knee:frequency:LFI20:Rad:S}{8.7}
+\setsymbol{LFI:knee:frequency:LFI21:Rad:S}{25.9}
+\setsymbol{LFI:knee:frequency:LFI22:Rad:S}{15.8}
+\setsymbol{LFI:knee:frequency:LFI23:Rad:S}{129.8}
+\setsymbol{LFI:knee:frequency:LFI24:Rad:S}{100.9}
+\setsymbol{LFI:knee:frequency:LFI25:Rad:S}{38.9}
+\setsymbol{LFI:knee:frequency:LFI26:Rad:S}{58.9}
+\setsymbol{LFI:knee:frequency:LFI27:Rad:S}{104.4}
+\setsymbol{LFI:knee:frequency:LFI28:Rad:S}{40.7}
+
+
+% LFI low frequency noise slope
+
+\setsymbol{LFI:slope:70GHz:units}{$-1.03$\mHz}
+\setsymbol{LFI:slope:44GHz:units}{$-0.89$\mHz}
+\setsymbol{LFI:slope:30GHz:units}{$-0.87$\mHz}
+
+\setsymbol{LFI:slope:70GHz}{$-1.03$}
+\setsymbol{LFI:slope:44GHz}{$-0.89$}
+\setsymbol{LFI:slope:30GHz}{$-0.87$}
+
+\setsymbol{LFI:slope:LFI18:Rad:M:units}{$-1.04$\mHz}
+\setsymbol{LFI:slope:LFI19:Rad:M:units}{$-1.09$\mHz}
+\setsymbol{LFI:slope:LFI20:Rad:M:units}{$-0.69$\mHz}
+\setsymbol{LFI:slope:LFI21:Rad:M:units}{$-1.56$\mHz}
+\setsymbol{LFI:slope:LFI22:Rad:M:units}{$-1.01$\mHz}
+\setsymbol{LFI:slope:LFI23:Rad:M:units}{$-0.96$\mHz}
+\setsymbol{LFI:slope:LFI24:Rad:M:units}{$-0.83$\mHz}
+\setsymbol{LFI:slope:LFI25:Rad:M:units}{$-0.91$\mHz}
+\setsymbol{LFI:slope:LFI26:Rad:M:units}{$-0.95$\mHz}
+\setsymbol{LFI:slope:LFI27:Rad:M:units}{$-0.87$\mHz}
+\setsymbol{LFI:slope:LFI28:Rad:M:units}{$-0.88$\mHz}
+\setsymbol{LFI:slope:LFI18:Rad:S:units}{$-1.15$\mHz}
+\setsymbol{LFI:slope:LFI19:Rad:S:units}{$-1.00$\mHz}
+\setsymbol{LFI:slope:LFI20:Rad:S:units}{$-0.95$\mHz}
+\setsymbol{LFI:slope:LFI21:Rad:S:units}{$-0.92$\mHz}
+\setsymbol{LFI:slope:LFI22:Rad:S:units}{$-1.01$\mHz}
+\setsymbol{LFI:slope:LFI23:Rad:S:units}{$-0.95$\mHz}
+\setsymbol{LFI:slope:LFI24:Rad:S:units}{$-0.73$\mHz}
+\setsymbol{LFI:slope:LFI25:Rad:S:units}{$-1.16$\mHz}
+\setsymbol{LFI:slope:LFI26:Rad:S:units}{$-0.79$\mHz}
+\setsymbol{LFI:slope:LFI27:Rad:S:units}{$-0.82$\mHz}
+\setsymbol{LFI:slope:LFI28:Rad:S:units}{$-0.91$\mHz}
+
+\setsymbol{LFI:slope:LFI18:Rad:M}{$-1.04$}
+\setsymbol{LFI:slope:LFI19:Rad:M}{$-1.09$}
+\setsymbol{LFI:slope:LFI20:Rad:M}{$-0.69$}
+\setsymbol{LFI:slope:LFI21:Rad:M}{$-1.56$}
+\setsymbol{LFI:slope:LFI22:Rad:M}{$-1.01$}
+\setsymbol{LFI:slope:LFI23:Rad:M}{$-0.96$}
+\setsymbol{LFI:slope:LFI24:Rad:M}{$-0.83$}
+\setsymbol{LFI:slope:LFI25:Rad:M}{$-0.91$}
+\setsymbol{LFI:slope:LFI26:Rad:M}{$-0.95$}
+\setsymbol{LFI:slope:LFI27:Rad:M}{$-0.87$}
+\setsymbol{LFI:slope:LFI28:Rad:M}{$-0.88$}
+\setsymbol{LFI:slope:LFI18:Rad:S}{$-1.15$}
+\setsymbol{LFI:slope:LFI19:Rad:S}{$-1.00$}
+\setsymbol{LFI:slope:LFI20:Rad:S}{$-0.95$}
+\setsymbol{LFI:slope:LFI21:Rad:S}{$-0.92$}
+\setsymbol{LFI:slope:LFI22:Rad:S}{$-1.01$}
+\setsymbol{LFI:slope:LFI23:Rad:S}{$-0.95$}
+\setsymbol{LFI:slope:LFI24:Rad:S}{$-0.73$}
+\setsymbol{LFI:slope:LFI25:Rad:S}{$-1.16$}
+\setsymbol{LFI:slope:LFI26:Rad:S}{$-0.79$}
+\setsymbol{LFI:slope:LFI27:Rad:S}{$-0.82$}
+\setsymbol{LFI:slope:LFI28:Rad:S}{$-0.91$}
+
+% LFI Beam FWHM
+
+\setsymbol{LFI:FWHM:70GHz:units}{13\parcm01}
+\setsymbol{LFI:FWHM:44GHz:units}{27\parcm92}
+\setsymbol{LFI:FWHM:30GHz:units}{32\parcm65}
+
+\setsymbol{LFI:FWHM:70GHz}{13.01}
+\setsymbol{LFI:FWHM:44GHz}{27.92}
+\setsymbol{LFI:FWHM:30GHz}{32.65}
+
+\setsymbol{LFI:FWHM:LFI18:units}{13\parcm39}
+\setsymbol{LFI:FWHM:LFI19:units}{13\parcm01}
+\setsymbol{LFI:FWHM:LFI20:units}{12\parcm75}
+\setsymbol{LFI:FWHM:LFI21:units}{12\parcm74}
+\setsymbol{LFI:FWHM:LFI22:units}{12\parcm87}
+\setsymbol{LFI:FWHM:LFI23:units}{13\parcm27}
+\setsymbol{LFI:FWHM:LFI24:units}{22\parcm98}
+\setsymbol{LFI:FWHM:LFI25:units}{30\parcm46}
+\setsymbol{LFI:FWHM:LFI26:units}{30\parcm31}
+\setsymbol{LFI:FWHM:LFI27:units}{32\parcm65}
+\setsymbol{LFI:FWHM:LFI28:units}{32\parcm66}
+
+\setsymbol{LFI:FWHM:LFI18}{13.39}
+\setsymbol{LFI:FWHM:LFI19}{13.01}
+\setsymbol{LFI:FWHM:LFI20}{12.75}
+\setsymbol{LFI:FWHM:LFI21}{12.74}
+\setsymbol{LFI:FWHM:LFI22}{12.87}
+\setsymbol{LFI:FWHM:LFI23}{13.27}
+\setsymbol{LFI:FWHM:LFI24}{22.98}
+\setsymbol{LFI:FWHM:LFI25}{30.46}
+\setsymbol{LFI:FWHM:LFI26}{30.31}
+\setsymbol{LFI:FWHM:LFI27}{32.65}
+\setsymbol{LFI:FWHM:LFI28}{32.66}
+
+
+% LFI Beam FWHM Uncertainty
+% When uncertainties are routinely available for all quantities, we'll likely change the format to build them into
+% the \setsymbol command.  For now, this will be a bit easier.
+
+%\setsymbol{LFI:FWHM:uncertainty:70GHz}{TBD\arcm}
+%\setsymbol{LFI:FWHM:uncertainty:44GHz}{TBD\arcm}
+%\setsymbol{LFI:FWHM:uncertainty:30GHz}{TBD\arcm}
+
+\setsymbol{LFI:FWHM:uncertainty:LFI18:units}{0.170\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI19:units}{0.174\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI20:units}{0.170\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI21:units}{0.156\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI22:units}{0.164\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI23:units}{0.171\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI24:units}{0.652\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI25:units}{1.075\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI26:units}{1.131\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI27:units}{1.266\arcm}
+\setsymbol{LFI:FWHM:uncertainty:LFI28:units}{1.287\arcm}
+
+\setsymbol{LFI:FWHM:uncertainty:LFI18}{0.170}
+\setsymbol{LFI:FWHM:uncertainty:LFI19}{0.174}
+\setsymbol{LFI:FWHM:uncertainty:LFI20}{0.170}
+\setsymbol{LFI:FWHM:uncertainty:LFI21}{0.156}
+\setsymbol{LFI:FWHM:uncertainty:LFI22}{0.164}
+\setsymbol{LFI:FWHM:uncertainty:LFI23}{0.171}
+\setsymbol{LFI:FWHM:uncertainty:LFI24}{0.652}
+\setsymbol{LFI:FWHM:uncertainty:LFI25}{1.075}
+\setsymbol{LFI:FWHM:uncertainty:LFI26}{1.131}
+\setsymbol{LFI:FWHM:uncertainty:LFI27}{1.266}
+\setsymbol{LFI:FWHM:uncertainty:LFI28}{1.287}
+
+
+
+% HFI Center Frequency
+
+\setsymbol{HFI:center:frequency:100GHz:units}{100\,GHz}
+\setsymbol{HFI:center:frequency:143GHz:units}{143\,GHz}
+\setsymbol{HFI:center:frequency:217GHz:units}{217\,GHz}
+\setsymbol{HFI:center:frequency:353GHz:units}{353\,GHz}
+\setsymbol{HFI:center:frequency:545GHz:units}{545\,GHz}
+\setsymbol{HFI:center:frequency:857GHz:units}{857\,GHz}
+
+\setsymbol{HFI:center:frequency:100GHz}{100}
+\setsymbol{HFI:center:frequency:143GHz}{143}
+\setsymbol{HFI:center:frequency:217GHz}{217}
+\setsymbol{HFI:center:frequency:353GHz}{353}
+\setsymbol{HFI:center:frequency:545GHz}{545}
+\setsymbol{HFI:center:frequency:857GHz}{857}
+
+% HFI Number of Detectors
+
+\setsymbol{HFI:Ndetectors:100GHz}{8}
+\setsymbol{HFI:Ndetectors:143GHz}{11}
+\setsymbol{HFI:Ndetectors:217GHz}{12}
+\setsymbol{HFI:Ndetectors:353GHz}{12}
+\setsymbol{HFI:Ndetectors:545GHz}{3}
+\setsymbol{HFI:Ndetectors:857GHz}{4}
+
+
+% HFI FWHM on maps
+
+\setsymbol{HFI:FWHM:Maps:100GHz:units}{9\parcm88}
+\setsymbol{HFI:FWHM:Maps:143GHz:units}{7\parcm18}
+\setsymbol{HFI:FWHM:Maps:217GHz:units}{4\parcm87}
+\setsymbol{HFI:FWHM:Maps:353GHz:units}{4\parcm65}
+\setsymbol{HFI:FWHM:Maps:545GHz:units}{4\parcm72}
+\setsymbol{HFI:FWHM:Maps:857GHz:units}{4\parcm39}
+\setsymbol{HFI:FWHM:Maps:100GHz}{9.88}
+\setsymbol{HFI:FWHM:Maps:143GHz}{7.18}
+\setsymbol{HFI:FWHM:Maps:217GHz}{4.87}
+\setsymbol{HFI:FWHM:Maps:353GHz}{4.65}
+\setsymbol{HFI:FWHM:Maps:545GHz}{4.72}
+\setsymbol{HFI:FWHM:Maps:857GHz}{4.39}
+
+
+% HFI Beam Ellipticity on maps
+
+\setsymbol{HFI:beam:ellipticity:Maps:100GHz}{1.15}
+\setsymbol{HFI:beam:ellipticity:Maps:143GHz}{1.01}
+\setsymbol{HFI:beam:ellipticity:Maps:217GHz}{1.06}
+\setsymbol{HFI:beam:ellipticity:Maps:353GHz}{1.05}
+\setsymbol{HFI:beam:ellipticity:Maps:545GHz}{1.14}
+\setsymbol{HFI:beam:ellipticity:Maps:857GHz}{1.19}
+
+
+
+% HFI optical Beam FWHM from Mars; time response deconvolved: frequency  average of values in table 4 in HFI instrument paper
+
+\setsymbol{HFI:FWHM:Mars:100GHz:units}{9\parcm37}
+\setsymbol{HFI:FWHM:Mars:143GHz:units}{7\parcm04}
+\setsymbol{HFI:FWHM:Mars:217GHz:units}{4\parcm68}
+\setsymbol{HFI:FWHM:Mars:353GHz:units}{4\parcm43}
+\setsymbol{HFI:FWHM:Mars:545GHz:units}{3\parcm80}
+\setsymbol{HFI:FWHM:Mars:857GHz:units}{3\parcm67}
+
+\setsymbol{HFI:FWHM:Mars:100GHz}{9.37}
+\setsymbol{HFI:FWHM:Mars:143GHz}{7.04}
+\setsymbol{HFI:FWHM:Mars:217GHz}{4.68}
+\setsymbol{HFI:FWHM:Mars:353GHz}{4.43}
+\setsymbol{HFI:FWHM:Mars:545GHz}{3.80}
+\setsymbol{HFI:FWHM:Mars:857GHz}{3.67}
+
+% HFI optical Beam Ellipticity from Mars; time response deconvolved: 
+% frequency average of values in table 4 in HFI instrument paper
+
+\setsymbol{HFI:beam:ellipticity:Mars:100GHz}{1.18}
+\setsymbol{HFI:beam:ellipticity:Mars:143GHz}{1.03}
+\setsymbol{HFI:beam:ellipticity:Mars:217GHz}{1.14}
+\setsymbol{HFI:beam:ellipticity:Mars:353GHz}{1.09}
+\setsymbol{HFI:beam:ellipticity:Mars:545GHz}{1.25}
+\setsymbol{HFI:beam:ellipticity:Mars:857GHz}{1.03}
+
+
+% HFI CMB relative calibration accuracy
+
+\setsymbol{HFI:CMB:relative:calibration:100GHz}{$\lsim 1\%$}
+\setsymbol{HFI:CMB:relative:calibration:143GHz}{$\lsim 1\%$}
+\setsymbol{HFI:CMB:relative:calibration:217GHz}{$\lsim 1\%$}
+\setsymbol{HFI:CMB:relative:calibration:353GHz}{$\lsim 1\%$}
+\setsymbol{HFI:CMB:relative:calibration:545GHz}{}
+\setsymbol{HFI:CMB:relative:calibration:857GHz}{}
+
+
+% HFI CMB absolute calibration accuracy
+
+\setsymbol{HFI:CMB:absolute:calibration:100GHz}{$\lsim 2\%$}
+\setsymbol{HFI:CMB:absolute:calibration:143GHz}{$\lsim 2\%$}
+\setsymbol{HFI:CMB:absolute:calibration:217GHz}{$\lsim 2\%$}
+\setsymbol{HFI:CMB:absolute:calibration:353GHz}{$\lsim 2\%$}
+\setsymbol{HFI:CMB:absolute:calibration:545GHz}{}
+\setsymbol{HFI:CMB:absolute:calibration:857GHz}{}
+
+
+% HFI FIRAS gain calibration accuracy: statistical
+
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:statistical:100GHz}{}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:statistical:143GHz}{}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:statistical:217GHz}{}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:statistical:353GHz}{2.5\%}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:statistical:545GHz}{1\%}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:statistical:857GHz}{0.5\%}
+
+
+
+% HFI FIRAS gain calibration accuracy: systematic
+
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:systematic:100GHz}{}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:systematic:143GHz}{}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:systematic:217GHz}{}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:systematic:353GHz}{}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:systematic:545GHz}{7\%}
+\setsymbol{HFI:FIRAS:gain:calibration:accuracy:systematic:857GHz}{7\%}
+
+
+% HFI FIRAS zero point accuracy:
+
+\setsymbol{HFI:FIRAS:zero:point:accuracy:100GHz:units}{0.8\MJysr}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:143GHz:units}{}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:217GHz:units}{}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:353GHz:units}{1.4\MJysr}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:545GHz:units}{2.2\MJysr}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:857GHz:units}{1.7\MJysr}
+
+\setsymbol{HFI:FIRAS:zero:point:accuracy:100GHz}{0.8}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:143GHz}{}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:217GHz}{}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:353GHz}{1.4}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:545GHz}{2.2}
+\setsymbol{HFI:FIRAS:zero:point:accuracy:857GHz}{1.7}
+
+
+
+% HFI diffuse source sensitivity unit conversion
+
+\setsymbol{HFI:unit:conversion:100GHz:units}{0.2415\MJysrmK}
+\setsymbol{HFI:unit:conversion:143GHz:units}{0.3694\MJysrmK}
+\setsymbol{HFI:unit:conversion:217GHz:units}{0.4811\MJysrmK}
+\setsymbol{HFI:unit:conversion:353GHz:units}{0.2883\MJysrmK}
+\setsymbol{HFI:unit:conversion:545GHz:units}{0.05826\MJysrmK}
+\setsymbol{HFI:unit:conversion:857GHz:units}{0.002238\MJysrmK}
+
+\setsymbol{HFI:unit:conversion:100GHz}{0.2415}
+\setsymbol{HFI:unit:conversion:143GHz}{0.3694}
+\setsymbol{HFI:unit:conversion:217GHz}{0.4811}
+\setsymbol{HFI:unit:conversion:353GHz}{0.2883}
+\setsymbol{HFI:unit:conversion:545GHz}{0.05826}
+\setsymbol{HFI:unit:conversion:857GHz}{0.002238}
+
+
+% HFI Colour Correction for \alpha = -2, for V1.01 of the spectral bands
+
+\setsymbol{HFI:colour:correction:alpha=-2:V1.01:100GHz}{0.9893}
+\setsymbol{HFI:colour:correction:alpha=-2:V1.01:143GHz}{0.9759}
+\setsymbol{HFI:colour:correction:alpha=-2:V1.01:217GHz}{1.0007}
+\setsymbol{HFI:colour:correction:alpha=-2:V1.01:353GHz}{1.0028}
+\setsymbol{HFI:colour:correction:alpha=-2:V1.01:545GHz}{1.0019}
+\setsymbol{HFI:colour:correction:alpha=-2:V1.01:857GHz}{0.9889}
+
+
+% HFI Colour Correction for \alpha = 0, for V1.01 of the spectral bands
+
+\setsymbol{HFI:colour:correction:alpha=0:V1.01:100GHz}{1.0008}
+\setsymbol{HFI:colour:correction:alpha=0:V1.01:143GHz}{1.0148}
+\setsymbol{HFI:colour:correction:alpha=0:V1.01:217GHz}{0.9909}
+\setsymbol{HFI:colour:correction:alpha=0:V1.01:353GHz}{0.9888}
+\setsymbol{HFI:colour:correction:alpha=0:V1.01:545GHz}{0.9878}
+\setsymbol{HFI:colour:correction:alpha=0:V1.01:857GHz}{1.0014}
+
+
