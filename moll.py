@@ -9,28 +9,32 @@ m = hp.read_map("data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
 
-#margins = [0.01, 0.99, 0.99, 0.01]
-#hp.mollview(m, min=-1, max=1, unit="mK", title="", xsize=4000, margins=margins)
-#hp.graticule()
-#plt.savefig("moll.pdf", dpi=200, bbox_inches="tight")
-
 nside = hp.npix2nside(len(m))
+
+# ratio is always 1/2
 xsize = 2000
 ysize = xsize/2.
+
 unit = r"$\mu K$"
+
+# this is the mollview min and max
 vmin = -1e3; vmax = 1e3
+
 theta = np.linspace(np.pi, 0, ysize)
 phi   = np.linspace(-np.pi, np.pi, xsize)
 longitude = np.radians(np.linspace(-180, 180, xsize))
 latitude = np.radians(np.linspace(-90, 90, ysize))
+
+# project the map to a rectangular matrix xsize x ysize
 PHI, THETA = np.meshgrid(phi, theta)
-# map on a matrix
 grid_map = m[hp.ang2pix(nside, THETA, PHI)] * 1e3
 
 for width in [18., 12., 8.8]:
     fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
+    # matplotlib is doing the mollveide projection
     ax = fig.add_subplot(111,projection='mollweide')
 
+    # remove white space around the image
     plt.subplots_adjust(left=0.01, right=0.99, top=0.95, bottom=0.01)
 
     # rasterized makes the map bitmap while the labels remain vectorial
