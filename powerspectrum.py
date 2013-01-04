@@ -118,6 +118,6 @@ for width in [18., 12., 8.8]:
     for ticklabel in ax.yaxis.get_ticklabels():
         ticklabel.set_rotation("vertical")
 
-    plt.savefig("latex/powerspectrum_%dmm.pdf" % int(width*10), bbox_inches='tight')
+    plt.savefig("latex/images/powerspectrum_%dmm.pdf" % int(width*10), bbox_inches='tight')
 
     # <codecell>
