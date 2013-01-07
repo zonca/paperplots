@@ -1,16 +1,23 @@
 ;+
 ; NAME:
-; PowerSpectrum_fig_example
+; LS_HFI_PIPfig_sample_ver_Jan2013
 ;
 ; PURPOSE:
 ; This procedure produces several example Planck paper plots to conform to the Planck paper style guide. 
 ;
 ;
 ; CALLING SEQUENCE:
-; PowerSpectrum_fig_example
+; LS_HFI_PIPfig_sample_ver_Jan2013
 ;
 ; INPUTS:
 ; requires several text files containing input data to plot.  
+;  f1 = 'bf_cbipap5_all.dat'                   ; 2 column text file, 0 header lines, l, C_l
+;  f2 = 'boom_powers.dat'                      ; 4 column text file, 3 header lines, l, c_l (uK^2), +/- 
+;  f3 = 'dasi_powers.dat'                      ; 5 column text file, 2 header lines, leff, l-range 1, l-range 2, Cl (uk^2), +/-
+;  f4 = 'maxima_powers.dat'                    ; 6 column text file, 2 header lines, leff, l-range 1, l-range 2, Cl (uk^2), +err, -err
+;  f5 = 'joint_final_iso_0.08_200_even.fdat'   ; 7 column text file, 0 header lines, lmin, lmax, l-eff, Cl (uk^2), +err, -err
+;  f6 = 'joint_final_iso_0.08_200_odd.fdat'    ; same as f5 above.
+;
 ; This is intended as an example for other members of the Planck consortia to follow in generating their own Planck figures using IDL,
 ; suitable for publication. 
 ;
@@ -42,7 +49,7 @@
 ;   Copyright Locke D. Spencer, 2013
 ;   
 ;-
-PRO PowerSpectrum_fig_example
+PRO LS_HFI_PIPfig_sample_ver_Jan2013
   ; 
   ; This script creates sample figures appropriate for submission to A&A for HFI PIP papers, using IDL to produce them.
   ;
@@ -147,7 +154,7 @@ PRO PowerSpectrum_fig_example
   Dname = !D.NAME							;	This is different for windows and linux (and likely MAC)
   ;
   XMAR_ = [8.15,2.25]     ; Set this to minimize white space on left and right sides of figure.
-  XMAR_ = [10.0,2.25]
+  XMAR_ = [6,2.25]
   YMAR_ = [3,0.5]     ; Set this to minimize white space on bottom and top of figure.
   ;
   XMAR1 = XMAR_
@@ -158,6 +165,8 @@ PRO PowerSpectrum_fig_example
   YMAR2 = YMAR_*120d/88d
   YMAR3 = YMAR_*180d/88d
   ;
+  YTTL_DXs = [-50d, -50d*88d/120d, -50d*88d/180d]
+  XTTL_DYs = [-100d, -100d*88d/120d, -100d*88d/180d]
   ;
   FNTsz = 8          ; Set this to the desired font size (pt)
   ;
@@ -222,7 +231,7 @@ PRO PowerSpectrum_fig_example
     ;  Use of the IDL _EXTRA keyword passes additional plot keywords onto the plot call within HFI_plot.
     ;
     HFI_plot, l1, cl1, /xs, xr=[0,3000], /ys, yr=[-1000,8000], BACKGROUND=255, COLOR=0, $
-      XTITLE='xttl', YTITLE='yttl', XMARGIN=XMAR, YMARGIN=YMAR
+      XTITLE='xttl', YTITLE='yttl', XMARGIN=XMAR, YMARGIN=YMAR, YTTL_DX = YTTL_DXs[jj], XTTL_DY=XTTL_DYs[jj]
     plots, !X.crange, 0d					;	Plot a horizontal line at y=0
     ;
     ;	Fill in the BOOMERANG data
@@ -303,7 +312,7 @@ PRO PowerSpectrum_fig_example
     ; Re-plot the frame of the figure as some of the polygons have overshaded tick-marks, etc.  
     ; This does not re-plot the data curves, just graph border and text labels.
     HFI_plot, l1, cl1, /xs, xr=[0,3000], /ys, yr=[-1000,8000], BACKGROUND=255, COLOR=0, $
-      XTITLE='xttl', YTITLE='yttl', XMARGIN=XMAR, YMARGIN=YMAR, /NOERASE, /NODATA
+      XTITLE='xttl', YTITLE='yttl', XMARGIN=XMAR, YMARGIN=YMAR, /NOERASE, /NODATA, YTTL_DX = YTTL_DXs[jj], XTTL_DY=XTTL_DYs[jj]
     ;stop
     ;
     device, /close								;	Close the postscript device/file. 
@@ -313,7 +322,7 @@ PRO PowerSpectrum_fig_example
     ;
     outname1 = 'LS_HFI_PIP_fig_sample_'+SZstr+'mm_v3'
     ; height and width in cm
-    LS_latexify, FNAME+'.eps', ['yttl','xttl'], ['\vspace{0pt}$\ell (\ell+1)C_\ell/2\pi$\quad $\left[\mu{\rm K}^2\right]$','$\ell$'], [1d,1d]*8d/11d, outname=outname1+'.eps', height=Ysz*2.54d, width=Xsz*2.54d, FDIR=FDIR;, /full
+    LS_latexify, FNAME+'.eps', ['yttl','xttl'], ['$\ell (\ell+1)C_\ell/2\pi$\quad $\left[\mu{\rm K}^2\right]$','$\ell$'], [1d,1d]*8d/11d, outname=outname1+'.eps', height=Ysz*2.54d, width=Xsz*2.54d, FDIR=FDIR;, /full
     ;LS_latexify, outname1+'.eps', 'xttl', '$\ell$', 1d, outname=outname2+'.eps', height=Ysz*2.54d - 0.2d, width=Xsz*2.54d - 0.2d
     ;
     IF Dname EQ 'X' THEN SPAWN, 'epstopdf '+FDIR+outname1+'.eps &'	;	If in linux, convert the postscript to a pdf file straight away.
@@ -374,7 +383,7 @@ PRO PowerSpectrum_fig_example
     ;  copy-paste the single plot from above...
     ;
     HFI_plot, l1, cl1, /xs, xr=[0,3000], /ys, yr=[-1000,8000], BACKGROUND=255, COLOR=0, $
-      XTITLE='xttl1', YTITLE='yttl1', XMARGIN=XMAR, YMARGIN=YMAR
+      XTITLE='xttl1', YTITLE='yttl1', XMARGIN=XMAR, YMARGIN=YMAR, YTTL_DX = YTTL_DXs[jj], XTTL_DY=XTTL_DYs[jj]
     plots, !X.crange, 0d          ; Plot a horizontal line at y=0
     ;
     ; Fill in the BOOMERANG data
@@ -457,7 +466,7 @@ PRO PowerSpectrum_fig_example
     ; This does not re-plot the data curves, just graph border and text labels.
     !P.MULTI=[0,1,2]
     HFI_plot, l1, cl1, /xs, xr=[0,3000], /ys, yr=[-1000,8000], BACKGROUND=255, COLOR=0, $
-      XTITLE='xttl1', YTITLE='yttl1', XMARGIN=XMAR, YMARGIN=YMAR, /NOERASE, /NODATA
+      XTITLE='xttl1', YTITLE='yttl1', XMARGIN=XMAR, YMARGIN=YMAR, /NOERASE, /NODATA, YTTL_DX = YTTL_DXs[jj], XTTL_DY=XTTL_DYs[jj]
     ;
     xyouts, !X.crange[0] + (!X.crange[1] - !X.crange[0])*0.015d,!Y.crange[0] + (!Y.crange[1] - !Y.crange[0])*0.95d - txtOffset, '(a)'
     ;
@@ -469,7 +478,7 @@ PRO PowerSpectrum_fig_example
     ;
     !P.MULTI=[1,1,2]
     HFI_plot, l1, cl1, /xs, xr=[0,3000], /ys, yr=[-1000,8000], BACKGROUND=255, COLOR=0, $
-      XTITLE='xttl2', YTITLE='yttl2', XMARGIN=XMAR, YMARGIN=YMAR
+      XTITLE='xttl2', YTITLE='yttl2', XMARGIN=XMAR, YMARGIN=YMAR, YTTL_DX = YTTL_DXs[jj], XTTL_DY=XTTL_DYs[jj]
     plots, !X.crange, 0d          ; Plot a horizontal line at y=0
     ;
     ; Fill in the BOOMERANG data
@@ -497,7 +506,7 @@ PRO PowerSpectrum_fig_example
     ; This does not re-plot the data curves, just graph border and text labels.
     !P.MULTI=[1,1,2]
     HFI_plot, l1, cl1, /xs, xr=[0,3000], /ys, yr=[-1000,8000], BACKGROUND=255, COLOR=0, $
-      XTITLE='xttl2', YTITLE='yttl2', XMARGIN=XMAR, YMARGIN=YMAR, /NOERASE, /NODATA
+      XTITLE='xttl2', YTITLE='yttl2', XMARGIN=XMAR, YMARGIN=YMAR, /NOERASE, /NODATA, YTTL_DX = YTTL_DXs[jj], XTTL_DY=XTTL_DYs[jj]
     ;
     xyouts, !X.crange[0] + (!X.crange[1] - !X.crange[0])*0.015d,!Y.crange[0] + (!Y.crange[1] - !Y.crange[0])*0.95d - txtOffset, '(b)'
     ;
