@@ -37,7 +37,9 @@
 ;   
 ;
 ;-
-PRO HFI_plot, x, y, _EXTRA=_EXTRA, DECMODX=DECMODX, DECMODY=DECMODY, Y_DX=Y_DX, Y_DY=Y_DY, X_DX=X_DX, X_DY=X_DY
+PRO HFI_plot, x, y, _EXTRA=_EXTRA, DECMODX=DECMODX, DECMODY=DECMODY, $
+  Y_DX=Y_DX, Y_DY=Y_DY, X_DX=X_DX, X_DY=X_DY, $
+  YTTL_DX=YTTL_DX, YTTL_DY=YTTL_DY, XTTL_DX=XTTL_DX, XTTL_DY=XTTL_DY
 ;
 ; This script is to plot to a virtual device to get the y-axis labels, and allow them to be re-plotted with a 90^o anti-clockwise rotation.
 ; ;
@@ -48,6 +50,10 @@ IF N_ELEMENTS(Y_DX) EQ 0 THEN Y_DX = 0
 IF N_ELEMENTS(Y_DY) EQ 0 THEN Y_DY = 0
 IF N_ELEMENTS(X_DX) EQ 0 THEN X_DX = 0
 IF N_ELEMENTS(X_DY) EQ 0 THEN X_DY = 0
+IF N_ELEMENTS(YTTL_DX) EQ 0 THEN YTTL_DX = 0
+IF N_ELEMENTS(YTTL_DY) EQ 0 THEN YTTL_DY = 0
+IF N_ELEMENTS(XTTL_DX) EQ 0 THEN XTTL_DX = 0
+IF N_ELEMENTS(XTTL_DY) EQ 0 THEN XTTL_DY = 0
 ; stop ;   
 IF N_ELEMENTS(y) EQ 0 THEN y = DINDGEN(5) + 1d
 Ny = N_ELEMENTS(y)
@@ -140,7 +146,20 @@ ENDIF ELSE BEGIN
   ;
 ENDELSE
 ;
-plot, x, y, _EXTRA=_EXTRA, YTICKNAME=YTICKNAME, XTICKNAME=XTICKNAME
+_EXTRA_orig = _EXTRA
+IF TAG_EXIST(_EXTRA,'XTITLE') THEN BEGIN
+  remove_tags, _EXTRA, 'XTITLE', _EXTRA_
+  _EXTRA = _EXTRA_
+ENDIF 
+;
+IF TAG_EXIST(_EXTRA,'YTITLE') THEN BEGIN
+  remove_tags, _EXTRA, 'YTITLE', _EXTRA_
+  _EXTRA = _EXTRA_
+ENDIF 
+; 
+plot, x, y, _EXTRA=_EXTRA, YTICKNAME=YTICKNAME, XTICKNAME=XTICKNAME, YTITLE=' ', XTITLE=' '
+;
+_EXTRA = _EXTRA_orig
 ;
 ; FIXME: I need to check the width of the character string to be sure that it doesn't overlap with neighboring data points.
 ;        If so then take every other data point.
@@ -214,6 +233,32 @@ Xtick_Yval = Xtick_Yval - CH_YSZ*Dev_to_DataY
 ;
 xyouts, (Ytick_Xval + Y_DX)[0:*:ITERY], (Ytick_Yval + Y_DY)[0:*:ITERY], YT_STR[0:*:ITERY], ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA=_EXTRA
 xyouts, (Xtick_Xval + X_DX)[0:*:ITERX], (Xtick_Yval + X_DY)[0:*:ITERX], XT_STR[0:*:ITERX], ALIGNMENT=0.5, ORIENTATION=0d, /DATA, _EXTRA=_EXTRA
+;
+; Now position the axis labels, including the Y[/X]TTL_DX[/Y] KEYWORDS.
+; First determine where I think they should be anyways.
+; 
+;w_pix = !D.X_SIZE - ((!X.range)[0] + (!X.range)[1])*!D.X_CH_SIZE    ;   height of plot range in device coordinates
+;w_dat = !X.crange[1] - !X.crange[0] ; height in data units.   ; height of plot-region in data units
+;txtWidth = (!D.X_CH_SIZE)*w_dat/w_pix        ; The approximate width of one character...with an extra 2 characters on either side
+;;
+;h_pix = !D.Y_SIZE - ((!Y.range)[0] + (!Y.range)[1])*!D.Y_CH_SIZE    ;   height of plot range in device coordinates
+;h_dat = !Y.crange[1] - !Y.crange[0] ; height in data units.   ; height of plot-region in data units
+;txtHeight = (!D.Y_CH_SIZE)*h_dat/h_pix        ; Calculate the average character height.
+;
+;  Now figure out where xttl and yttl should be, I want yttl centred vertically, and offset 2.5 character spaces from the axis.
+;  I want xttl centred horizontally, and vertically offset 2.5 character spaces.
+;  or perhaps three spaces...
+;  
+IF YLG THEN yttl_y = 10d^((!Y.crange[1] + !Y.crange[0])/2d) ELSE yttl_y = ((!Y.crange[1] + !Y.crange[0])/2d) 
+IF XLG THEN yttl_x = 10d^(!X.CRANGE[0]) - CH_XSZ*Dev_to_DataX*3.5d ELSE yttl_x = (!X.CRANGE[0]) - CH_XSZ*Dev_to_DataX*3d
+;
+IF XLG THEN xttl_x = 10d^((!X.crange[1] + !X.crange[0])/2d) ELSE xttl_x = ((!X.crange[1] + !X.crange[0])/2d)
+IF YLG THEN xttl_y = 10d^(!Y.CRANGE[0]) - CH_YSZ*Dev_to_DataY*3.5d ELSE xttl_y = (!Y.CRANGE[0]) - CH_YSZ*Dev_to_DataY*2.75d
+;
+;stop
+;
+IF TAG_EXIST(_EXTRA,'XTITLE') THEN xyouts, xttl_x + xttl_dx, xttl_y + xttl_dy, ALIGNMENT=0.5, /DATA, _EXTRA.XTITLE, _EXTRA=_EXTRA
+IF TAG_EXIST(_EXTRA,'YTITLE') THEN xyouts, yttl_x + yttl_dx, yttl_y + yttl_dy, ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA.YTITLE, _EXTRA=_EXTRA
 ;
 ;stop
 ;
@@ -876,7 +921,9 @@ END
 ; 
 ;-
 pro LS_latexify, filename, tag, tex, scale, outname=outname, $
-      height=height, width=width, full=full, FDIR=FDIR
+      height=height, width=width, full=full, FDIR=FDIR, POSN=POSN, PSPOSN=PSPOSN
+  ;
+  ;IF N_ELEMENTS(POSN) EQ 0 THEN
   ;
   if ~keyword_set(scale) then scale=replicate(1, n_elements(tag))
   scale = strcompress(string(scale), /remove_all)
@@ -895,7 +942,7 @@ pro LS_latexify, filename, tag, tex, scale, outname=outname, $
                       'paperheight='+strcompress(string(height+0.1), /remove_all)+'cm,margin=0pt}'
   printf, lun,'\begin{document}'
   for i=0, n_elements(tag)-1 do $
-        printf, lun,'\psfrag{'+tag[i]+'}[bc][cc]['+scale[i]+']{'+tex[i]+'}'
+        printf, lun,'\psfrag{'+tag[i]+'}[cc][cc]['+scale[i]+']{'+tex[i]+'}'
   printf, lun,'\includegraphics[width='+$
        strcompress(string(width), /remove_all)+'cm,height='+strcompress(string(height), /remove_all)+'cm]{'+filename+'}'
   printf, lun,'\end{document}'
@@ -923,3 +970,106 @@ pro LS_latexify, filename, tag, tex, scale, outname=outname, $
   ;
 end
 ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;+
+;
+; NAME:
+;    REMOVE_TAGS
+;       
+; PURPOSE:
+;    remove the specified tags from input structure
+;
+; CALLING SEQUENCE:
+;    remove_tags, oldstruct, tagnames, newstruct
+;
+; INPUTS: 
+;    oldstruct: the original structure
+;    tagnames: the names of tags to be removed (can be an array)
+;
+; OPTIONAL INPUTS:
+;    NONE.
+;
+; KEYWORD PARAMETERS:
+;    NONE.
+;       
+; OUTPUTS: 
+;    newstruct: the new structure without tags.
+;
+; OPTIONAL OUTPUTS:
+;    NONE
+;
+; CALLED ROUTINES:
+;    
+; 
+; PROCEDURE: 
+;    
+; 
+;
+; REVISION HISTORY:
+;    ????? Judith Racusin
+;    25-OCT-2000 Modified to handle arbitrary tag types. Also error 
+;          handling. Erin Scott Sheldon
+;       
+;                                      
+;-                                       
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+PRO remove_tags, struct, tagnames, newstruct
+
+  IF n_params() EQ 0 THEN BEGIN 
+      print,'Syntax - remove_tags, oldstruct, tagnames, newstruct'
+      print
+      print,'Use doc_library,"remove_tags"  for more help.'  
+      return
+  END
+
+  ;; Figure out which tags get removed
+
+  tags=tag_names(struct)
+  n=n_elements(tags)
+  tagnames=strupcase(tagnames)
+  nt=n_elements(tagnames)
+  IF nt EQ 1 THEN BEGIN
+      t=where(tags NE tagnames[0],nw) 
+      IF nw EQ n THEN BEGIN
+          print,'-----------------------------------------------------'
+          message,'Tag did not match, structure unchanged',/inf
+          print,'-----------------------------------------------------'
+          newstruct = struct
+          return
+      ENDIF 
+  ENDIF ELSE BEGIN 
+      match,tags,tagnames,m
+      IF m[0] EQ -1 THEN BEGIN
+          print,'-------------------------------------------------'
+          message,'No tags matched, structure unchanged',/inf
+          print,'-------------------------------------------------'
+          newstruct=struct
+          return
+      ENDIF 
+      nm=n_elements(m)
+      IF nm EQ n THEN BEGIN 
+          print,'-------------------------------------------------------------'
+          message,'This would remove all tags! structure unchanged',/inf
+          print,'-------------------------------------------------------------'
+          newstruct=struct
+          return
+      ENDIF 
+      t=lindgen(n)
+      remove, m, t
+  ENDELSE 
+      
+  ;; create new structure
+  tags=tags[t]
+  n=n_elements(tags)
+
+  newstruct=create_struct(tags[0],struct[0].(t[0]))
+  
+  FOR i=1L, n-1 DO newstruct = create_struct(temporary(newstruct), $
+                                             tags[i], struct[0].(t[i]) )
+
+  newstruct=replicate( temporary(newstruct), n_elements(struct) )
+  struct_assign,struct,newstruct
+
+  return
+END
