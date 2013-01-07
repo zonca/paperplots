@@ -1,13 +1,13 @@
 ;+
 ; NAME:
-; LS_HFI_PIPfig_sample_ver_Jan2013
+; PowerSpectrum_fig_example
 ;
 ; PURPOSE:
 ; This procedure produces several example Planck paper plots to conform to the Planck paper style guide. 
 ;
 ;
 ; CALLING SEQUENCE:
-; LS_HFI_PIPfig_sample_ver_Jan2013
+; PowerSpectrum_fig_example
 ;
 ; INPUTS:
 ; requires several text files containing input data to plot.  
@@ -49,7 +49,7 @@
 ;   Copyright Locke D. Spencer, 2013
 ;   
 ;-
-PRO LS_HFI_PIPfig_sample_ver_Jan2013
+PRO PowerSpectrum_fig_example
   ; 
   ; This script creates sample figures appropriate for submission to A&A for HFI PIP papers, using IDL to produce them.
   ;
