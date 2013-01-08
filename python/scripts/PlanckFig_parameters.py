@@ -34,13 +34,13 @@ for dataset in datasets:
     data_folder = os.path.join("..", "..", "data", "parameters", dataset)
     data[dataset] = {}
     for p in parameters:
-        filename = glob(os.path.join(data_folder, p + "*"))[0]
+        filename = glob(os.path.join(data_folder, p))[0]
         data[dataset][p] = np.loadtxt(filename)
         if data[dataset][p].ndim > 1:
             # remove index column
             data[dataset][p] = data[dataset][p][:,1]
 
-for width in [18., 12., 8.8][1:2]:
+for width in [18., 12., 8.8]:
     fig = plt.figure(figsize=(cm2inch(width), cm2inch(width*6/8.)))
     # this should be changed for making a panel of multiple figures
     ax = fig.add_subplot(111)
@@ -82,9 +82,9 @@ for width in [18., 12., 8.8][1:2]:
 
     # create legend with proxy rectangle
     proxy.append(plt.Rectangle((0,0),1,1,fc = "darkviolet"))
-    labels.append("Hill-top")
+    labels.append("Hill-top inflation")
 
-    legend = plt.legend(proxy, labels, frameon=False)
+    legend = plt.legend(proxy, labels, frameon=False, loc="upper left")
 
     # set edge color to same as face color
     for rect in legend.get_patches():
@@ -92,8 +92,7 @@ for width in [18., 12., 8.8][1:2]:
 
     plt.xlabel(r"Primordial Tilt ($n_s$)")
     plt.ylabel(r"Tensor-to-Scalar Ratio ($r$)")
-    # restore initial limits
-    plt.xlim(xaxis_range)
+    plt.xlim([0.92, 1.02])
     plt.ylim([yaxis_range[0], 0.35])
 
     # reduce white space around figure
