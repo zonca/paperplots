@@ -1,5 +1,8 @@
 *.py[cod]
 ipython*
+*.log
+*.aux
+*.out
 
 # C extensions
 *.so
