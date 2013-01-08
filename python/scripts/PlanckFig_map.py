@@ -1,10 +1,11 @@
 from setup_matplotlib import *
 import healpy as hp
-import newplot
-
-hp.newplot = newplot
 
 m = hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)
+
+# setup colormap
+from matplotlib.colors import ListedColormap
+cmap = ListedColormap(np.loadtxt("../../data/parchment1.dat")/255.)
 
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
@@ -38,7 +39,7 @@ for width in [18., 12., 8.8]:
     plt.subplots_adjust(left=0.01, right=0.99, top=0.95, bottom=0.01)
 
     # rasterized makes the map bitmap while the labels remain vectorial
-    image = plt.pcolormesh(longitude, latitude, grid_map, vmin=vmin, vmax=vmax, rasterized=True)
+    image = plt.pcolormesh(longitude, latitude, grid_map, vmin=vmin, vmax=vmax, rasterized=True, cmap=cmap)
 
     # graticule
     ax.set_longitude_grid(60)
@@ -62,4 +63,4 @@ for width in [18., 12., 8.8]:
     # ax.xaxis.set_ticks([])
 
     plt.grid(True)
-    plt.savefig("figures/PlanckFig_map_%dmm.pdf" % int(width*10), bbox_inches='tight')
+    plt.savefig("../figures/PlanckFig_map_colombi1_%dmm.pdf" % int(width*10), bbox_inches='tight')
