@@ -70,11 +70,11 @@ for width in [18., 12., 8.8]:
     plt.ylim([-1000, 7500]); plt.xlim([0, 3300]);
 
     # reduce white space around figure
-    plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
     # set vertical y axis ticklables
     for ticklabel in ax.yaxis.get_ticklabels():
         ticklabel.set_rotation("vertical")
 
     # save to pdf with right bounding box
-    plt.savefig("figures/PlanckFig_lineplot_%dmm.pdf" % int(width*10), bbox_inches='tight')
+    plt.savefig("../figures/PlanckFig_lineplot_python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0)

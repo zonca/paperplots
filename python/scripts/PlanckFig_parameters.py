@@ -80,4 +80,4 @@ for width in [18., 12., 8.8]:
     for ticklabel in ax.yaxis.get_ticklabels():
         ticklabel.set_rotation("vertical")
 
-    plt.savefig("figures/PlanckFig_parameters_%dmm.pdf" % int(width*10), bbox_inches='tight')
+    plt.savefig("../figures/PlanckFig_parameters_python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0)

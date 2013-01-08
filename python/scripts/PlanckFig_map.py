@@ -6,6 +6,7 @@ m = hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)
 # setup colormap
 from matplotlib.colors import ListedColormap
 cmap = ListedColormap(np.loadtxt("../../data/parchment1.dat")/255.)
+cmap = None
 
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
@@ -63,4 +64,4 @@ for width in [18., 12., 8.8]:
     # ax.xaxis.set_ticks([])
 
     plt.grid(True)
-    plt.savefig("../figures/PlanckFig_map_colombi1_%dmm.pdf" % int(width*10), bbox_inches='tight')
+    plt.savefig("../figures/PlanckFig_map_python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0)
