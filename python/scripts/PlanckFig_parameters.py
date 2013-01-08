@@ -21,13 +21,13 @@ def confint2d(hist, which=[.95, .68, 0]):
 # Load data
 parameters = "ns", "r"
 
-#datasets = "wmap7_r", "spt_wmap7_r", "spt_wmap7_h0_bao_r"
-#colors = plt.cm.Greys, plt.cm.Reds, plt.cm.Blues
-datasets = "spt_wmap7_r", "spt_wmap7_h0_bao_r"
-labels = "SPT + WMAP7", "SPT + WMAP7 + $H_0$ + BAO"
+datasets = "wmap_lcdm_sz_lens_tens_wmap7_chains_norm_v4", "spt_wmap7_r", "spt_wmap7_h0_bao_r"
+colors = plt.cm.Greys, plt.cm.Reds, plt.cm.Blues
+#datasets = "spt_wmap7_r", "spt_wmap7_h0_bao_r"
+labels = ["WMAP7", "SPT + WMAP7", "SPT + WMAP7 + $H_0$ + BAO"]
 
-colors = plt.cm.Reds, plt.cm.Blues
-alphas = 1, .9 
+#colors = plt.cm.Reds, plt.cm.Blues
+alphas = 1, .9, .9
 
 data = {}
 for dataset in datasets:
@@ -40,7 +40,7 @@ for dataset in datasets:
             # remove index column
             data[dataset][p] = data[dataset][p][:,1]
 
-for width in [18., 12., 8.8]:
+for width in [18., 12., 8.8][1:2]:
     fig = plt.figure(figsize=(cm2inch(width), cm2inch(width*6/8.)))
     # this should be changed for making a panel of multiple figures
     ax = fig.add_subplot(111)
@@ -64,17 +64,40 @@ for width in [18., 12., 8.8]:
         # create fake rectangles for the legend
         proxy.append(plt.Rectangle((0,0),1,1,fc = CS.tcolors[1][0]))
 
+    xaxis_range = ax.get_xlim()
+    yaxis_range = ax.get_ylim()
+    ns = np.linspace(xaxis_range[0], xaxis_range[1], 80)
+    exponential_inflation = 8 * (1 - ns)
+    exp_inflation_line = plt.plot(ns, exponential_inflation, 'k--')
+
+    # add explicitely to the legend because we are creating the legend explicitely
+    proxy.append(exp_inflation_line[0])
+    labels.append("Exponential inflation")
+
+    def hill_top(ns, N):
+        return 8 * (1 - ns) * np.exp(-N * (1 - ns))
+
+    # fill vertically between 2 lines
+    hill_top_line = ax.fill_between(ns, hill_top(ns, 50), hill_top(ns, 60), interpolate=True, edgecolor="darkviolet", facecolor="darkviolet")
+
+    # create legend with proxy rectangle
+    proxy.append(plt.Rectangle((0,0),1,1,fc = "darkviolet"))
+    labels.append("Hill-top")
+
     legend = plt.legend(proxy, labels, frameon=False)
+
     # set edge color to same as face color
     for rect in legend.get_patches():
         rect.set_edgecolor(rect.get_facecolor())
 
     plt.xlabel(r"Primordial Tilt ($n_s$)")
     plt.ylabel(r"Tensor-to-Scalar Ratio ($r$)")
-    plt.ylim([ax.get_ylim()[0], 0.35])
+    # restore initial limits
+    plt.xlim(xaxis_range)
+    plt.ylim([yaxis_range[0], 0.35])
 
     # reduce white space around figure
-    plt.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
     # set vertical y axis ticklables
     for ticklabel in ax.yaxis.get_ticklabels():
