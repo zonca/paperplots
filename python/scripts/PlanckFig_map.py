@@ -4,7 +4,7 @@ import newplot
 
 hp.newplot = newplot
 
-m = hp.read_map("data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)
+m = hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)
 
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
@@ -62,4 +62,4 @@ for width in [18., 12., 8.8]:
     # ax.xaxis.set_ticks([])
 
     plt.grid(True)
-    plt.savefig("latex/images/mollview_%dmm.pdf" % int(width*10), bbox_inches='tight')
+    plt.savefig("figures/PlanckFig_map_%dmm.pdf" % int(width*10), bbox_inches='tight')

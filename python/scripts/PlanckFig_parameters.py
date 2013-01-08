@@ -31,7 +31,7 @@ alphas = 1, .9
 
 data = {}
 for dataset in datasets:
-    data_folder = os.path.join("data", "parameters", dataset)
+    data_folder = os.path.join("..", "..", "data", "parameters", dataset)
     data[dataset] = {}
     for p in parameters:
         filename = glob(os.path.join(data_folder, p + "*"))[0]
@@ -80,4 +80,4 @@ for width in [18., 12., 8.8]:
     for ticklabel in ax.yaxis.get_ticklabels():
         ticklabel.set_rotation("vertical")
 
-    plt.savefig("latex/images/parameters_%dmm.pdf" % int(width*10), bbox_inches='tight')
+    plt.savefig("figures/PlanckFig_parameters_%dmm.pdf" % int(width*10), bbox_inches='tight')

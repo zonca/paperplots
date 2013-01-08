@@ -3,12 +3,12 @@ from setup_matplotlib import *
 from matplotlib.ticker import MaxNLocator
 
 # Load data
-power_spectrum = np.loadtxt("data/bf_cbipap5_all.dat") # l, C_l
-boomerang = np.loadtxt("data/boom_powers.dat", comments="!") # l left, l right, C_l (uK^2), +/- 
-dasi = np.loadtxt("data/dasi_powers.dat", comments="!") # l eff, l left, l right, C_l (uK^2), +/- 
-maxima = np.loadtxt("data/maxima_powers.dat", comments="#") # l eff, l left, l right, C_l (uK^2), +, - 
-even = np.loadtxt("data/joint_final_iso_0.08_200_even.fdat") # lmin, lmax, l-eff, Cl (uk^2), +err, -err
-odd = np.loadtxt("data/joint_final_iso_0.08_200_odd.fdat") # lmin, lmax, l-eff, Cl (uk^2), +err, -err
+power_spectrum = np.loadtxt("../../data/bf_cbipap5_all.dat") # l, C_l
+boomerang = np.loadtxt("../../data/boom_powers.dat", comments="!") # l left, l right, C_l (uK^2), +/- 
+dasi = np.loadtxt("../../data/dasi_powers.dat", comments="!") # l eff, l left, l right, C_l (uK^2), +/- 
+maxima = np.loadtxt("../../data/maxima_powers.dat", comments="#") # l eff, l left, l right, C_l (uK^2), +, - 
+even = np.loadtxt("../../data/joint_final_iso_0.08_200_even.fdat") # lmin, lmax, l-eff, Cl (uk^2), +err, -err
+odd = np.loadtxt("../../data/joint_final_iso_0.08_200_odd.fdat") # lmin, lmax, l-eff, Cl (uk^2), +err, -err
 
 # Create the plot
 
@@ -77,4 +77,4 @@ for width in [18., 12., 8.8]:
         ticklabel.set_rotation("vertical")
 
     # save to pdf with right bounding box
-    plt.savefig("latex/images/powerspectrum_%dmm.pdf" % int(width*10), bbox_inches='tight')
+    plt.savefig("figures/PlanckFig_lineplot_%dmm.pdf" % int(width*10), bbox_inches='tight')
