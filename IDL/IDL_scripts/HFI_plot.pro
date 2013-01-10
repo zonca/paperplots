@@ -44,6 +44,9 @@ PRO HFI_plot, x, y, _EXTRA=_EXTRA, DECMODX=DECMODX, DECMODY=DECMODY, $
 ; This script is to plot to a virtual device to get the y-axis labels, and allow them to be re-plotted with a 90^o anti-clockwise rotation.
 ; ;
 ; 
+;  If no keywords are passed then it doesn't like it, so make a structure to use as a placeholder
+IF N_ELEMENTS(_EXTRA) EQ 0 THEN _EXTRA = {HFI:0}
+;
 IF N_ELEMENTS(DECMODX) EQ 0 THEN DECMODX = 0
 IF N_ELEMENTS(DECMODY) EQ 0 THEN DECMODY = 0
 IF N_ELEMENTS(Y_DX) EQ 0 THEN Y_DX = 0
@@ -105,13 +108,13 @@ plot, x, y, YLOG=YLG, XLOG=XLG, /NODATA, /NOERASE, YS=YST, XS=XST, YTICK_GET = Y
 ;
 NumY = N_ELEMENTS(YT)
 YTICKNAME = STRARR(NumY) + ' '
-Ytick_Xval = !X.crange[0] - (!X.crange[1] - !X.crange[0])/100d
+Ytick_Xval = !X.crange[0] ;  - (!X.crange[1] - !X.crange[0])/100d
 Ytick_Xval = DBLARR(NumY) + Ytick_Xval
 Ytick_Yval = YT
 ;
 NumX = N_ELEMENTS(XT)
 XTICKNAME = STRARR(NumX) + ' '
-Xtick_Yval = !Y.crange[0] - (!Y.crange[1] - !Y.crange[0])/100d
+Xtick_Yval = !Y.crange[0] ;  - (!Y.crange[1] - !Y.crange[0])/100d
 Xtick_Yval = DBLARR(NumX) + Xtick_Yval
 Xtick_Xval = XT
 ;
@@ -176,12 +179,15 @@ ITERY = 1
 ITERX = 1
 IF YLG THEN BEGIN 
   ;
-  Dev_to_DataY = (ALOG10(!Y.CRANGE[1]) - ALOG10(!Y.CRANGE[0]))/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
+  CH_lenY = (CH_lenY - 4d - 2d)*0.62d + 2d
   ;
-  CH_strtsY = ALOG10(Ytick_Yval) - CH_lenY*CH_YSZ*Dev_to_DataY/2d
+  ;Dev_to_DataY = (ALOG10(!Y.CRANGE[1]) - ALOG10(!Y.CRANGE[0]))/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
+  Dev_to_DataY = (!Y.CRANGE[1] - !Y.CRANGE[0])/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
+  ;
+  CH_strtsY = ALOG10(Ytick_Yval) - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d
   CH_strtsY = 10d^CH_strtsY
   ;
-  CH_endsY  = ALOG10(Ytick_Yval) + CH_lenY*CH_YSZ*Dev_to_DataY/2d  
+  CH_endsY  = ALOG10(Ytick_Yval) + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d  
   CH_endsY = 10d^CH_endsY
   ;
 ENDIF ELSE BEGIN
@@ -196,7 +202,10 @@ ENDELSE
 ;
 IF XLG THEN BEGIN 
   ;
-  Dev_to_DataX = (ALOG10(!X.CRANGE[1]) - ALOG10(!X.CRANGE[0]))/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
+  CH_lenX = (CH_lenX - 4d - 2d)*0.62d + 2d
+  ;
+  ;Dev_to_DataX = (ALOG10(!X.CRANGE[1]) - ALOG10(!X.CRANGE[0]))/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
+  Dev_to_DataX = (!X.CRANGE[1] - !X.CRANGE[0])/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   ;
   CH_strtsX = ALOG10(Xtick_Xval) - CH_lenX*CH_XSZ*Dev_to_DataX/2d
   CH_strtsX = 10d^CH_strtsX
@@ -224,12 +233,29 @@ NegOlapX = WHERE(OlapX LE 0d, NnegOlapX)
 IF NnegOlapY GT 0 THEN ITERY = 2 ELSE ITERY = 1
 IF NnegOlapX GT 0 THEN ITERX = 2 ELSE ITERX = 1
 ;
-IF CH_endsY[NumY - 1] GT !Y.crange[1] THEN YT_str[NumY - 1] = ' '
-IF CH_endsX[NumX - 1] GT !X.crange[1] THEN XT_str[NumX - 1] = ' '
+;  Check that the last number for either axis does not go outside of the plot range.  
+;
+IF TAG_EXIST(_EXTRA,'XMARGIN') THEN XMAR = _EXTRA.XMARGIN ELSE XMAR = !X.MARGIN
+IF TAG_EXIST(_EXTRA,'YMARGIN') THEN YMAR = _EXTRA.YMARGIN ELSE YMAR = !Y.MARGIN
+;
+YBOX = !Y.CRANGE + [-1d,1d]*DOUBLE(!D.Y_CH_SIZE)*DOUBLE(YMAR)/DOUBLE(!D.Y_SIZE)/!Y.S[1]
+XBOX = !X.CRANGE + [-1d,1d]*DOUBLE(!D.X_CH_SIZE)*DOUBLE(XMAR)/DOUBLE(!D.X_SIZE)/!X.S[1]
+;
+IF YLG THEN YBOX = 10d^(!Y.CRANGE + [-1d,1d]*DOUBLE(!D.Y_CH_SIZE)*DOUBLE(YMAR)/DOUBLE(!D.Y_SIZE)/!Y.S[1])
+IF XLG THEN XBOX = 10d^(!X.CRANGE + [-1d,1d]*DOUBLE(!D.X_CH_SIZE)*DOUBLE(XMAR)/DOUBLE(!D.X_SIZE)/!X.S[1])
+;
+IF CH_strtsY[0] LT YBOX[0] THEN YT_str[0] = ' '
+IF CH_strtsX[0] LT XBOX[0] THEN XT_str[0] = ' '
+;
+IF CH_endsY[NumY - 1] GT YBOX[1] THEN YT_str[NumY - 1] = ' '
+IF CH_endsX[NumX - 1] GT XBOX[1] THEN XT_str[NumX - 1] = ' '
 ;
 ;stop
 ;
-Xtick_Yval = Xtick_Yval - CH_YSZ*Dev_to_DataY
+Xtick_Yval = Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d   ; Need to subtract one character as xyouts takes the bottom of the letter location.
+IF YLG THEN Xtick_Yval = 10d^Xtick_Yval
+Ytick_Xval = Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d  ; It is the coords for the bottom of the characters
+IF XLG THEN Ytick_Xval = 10d^Ytick_Xval
 ;
 xyouts, (Ytick_Xval + Y_DX)[0:*:ITERY], (Ytick_Yval + Y_DY)[0:*:ITERY], YT_STR[0:*:ITERY], ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA=_EXTRA
 xyouts, (Xtick_Xval + X_DX)[0:*:ITERX], (Xtick_Yval + X_DY)[0:*:ITERX], XT_STR[0:*:ITERX], ALIGNMENT=0.5, ORIENTATION=0d, /DATA, _EXTRA=_EXTRA

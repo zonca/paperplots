@@ -31,7 +31,7 @@
 ;
 ;
 ; MODIFICATION HISTORY:
-;   Written by: L.D.Spencer 2013/Jan/04
+;   Written by: L.D.Spencer 2013/Jan/10
 ;   
 ;   This program is free software: you can redistribute it and/or modify
 ;   it under the terms of the GNU General Public License as published by
@@ -154,7 +154,7 @@ PRO PowerSpectrum_fig_example
   Dname = !D.NAME							;	This is different for windows and linux (and likely MAC)
   ;
   XMAR_ = [8.15,2.25]     ; Set this to minimize white space on left and right sides of figure.
-  XMAR_ = [6,2.25]
+  XMAR_ = [6,0.5]
   YMAR_ = [3,0.5]     ; Set this to minimize white space on bottom and top of figure.
   ;
   XMAR1 = XMAR_
@@ -203,7 +203,7 @@ PRO PowerSpectrum_fig_example
     ;
     SZstr = SZstrs[jj]
     plotDIR = fDIR
-    fName = 'LS_HFI_PIP_fig_sample_'+SZstr+'mm_v2'  
+    fName = 'PlanckFig_lineplot_IDL_'+SZstr+'mm_'  
     set_plot, "ps"
     !P.font = 0
     device, FILENAME=plotDIR+fName+'.eps',xsize=Xsz,ysize=Ysz,/inches,/color, /ENCAPSULATED, /HELVETICA, FONT_size=FNTsz
@@ -251,8 +251,8 @@ PRO PowerSpectrum_fig_example
     ;  so I am doing it manually for demonstration purposes.  There is an easier way, but perhaps less clear for demonstration purposes. 
     ;
     ;  Boomerang is the longest word, so figure out where it wants to be to avoid going out of the plot region.  
-    w_pix = !D.X_SIZE - ((!X.range)[0] + (!X.range)[1])*!D.X_CH_SIZE    ;   height of plot range in device coordinates
-    w_dat = !X.crange[1] - !X.crange[0] ; height in data units.   ; height of plot-region in data units
+    w_pix = !D.X_SIZE - ((!X.range)[0] + (!X.range)[1])*!D.X_CH_SIZE    ;   width of plot range in device coordinates
+    w_dat = !X.crange[1] - !X.crange[0] ; height in data units.   ; width of plot-region in data units
     Rscl = 0.75                 ; Scale this text a bit smaller
     txtWidth = (!D.X_CH_SIZE)*w_dat/w_pix*Rscl        ; The approximate width of one character...with an extra 2 characters on either side
     strWidth = txtWidth*15d ; boomerang is only 9 characters, but I am putting in a few more as a safety factor. 
@@ -285,11 +285,11 @@ PRO PowerSpectrum_fig_example
     POLYFILL, [lx1,lx1,lx2,lx2,lx1], [ly1,ly2,ly2,ly1,ly1] - dLegY*3d, COLOR=26, /LINE_FILL, ORIENTATION=45, THICK=1.5, SPACING=0.05
     POLYFILL, [lx1,lx1,lx2,lx2,lx1], [ly1,ly2,ly2,ly1,ly1] - dLegY*3d, COLOR=26, /LINE_FILL, ORIENTATION=-45,THICK=1.5, SPACING=0.05
     LS_square, /FILL    ;   Switch the plot symbol to a filled square
-    oploterror, legxCen - txtWidth*1.5d, legyCen - dLegY*4d, txtWidth*1.1d, txtHeight*0.6d, color=18, ERRcolor=18, PSYM=8, THICK=3, SYMSIZE=0.5
-    oploterror, legxCen + txtWidth*1.5d, legyCen - dLegY*4d, txtWidth*1.1d, txtHeight*0.6d, color=18, ERRcolor=18, PSYM=8, THICK=3, SYMSIZE=0.5
+    oploterror, legxCen - txtWidth*1.5d, legyCen - dLegY*4d, txtWidth*1.1d, txtHeight*0.6d, color=18, ERRcolor=18, PSYM=8, THICK=3, SYMSIZE=0.5, HATLENGTH = 90d
+    oploterror, legxCen + txtWidth*1.5d, legyCen - dLegY*4d, txtWidth*1.1d, txtHeight*0.6d, color=18, ERRcolor=18, PSYM=8, THICK=3, SYMSIZE=0.5, HATLENGTH = 90d
     LS_circle, /FILL    ;   Switch the plot symbol to a filled circle
-    oploterror, legxCen - txtWidth*1.5d, legyCen - dLegY*5d, txtWidth*1.1d, txtHeight*0.6d, color=13, ERRcolor=13, PSYM=8, THICK=3, SYMSIZE=0.5
-    oploterror, legxCen + txtWidth*1.5d, legyCen - dLegY*5d, txtWidth*1.1d, txtHeight*0.6d, color=13, ERRcolor=13, PSYM=8, THICK=3, SYMSIZE=0.5    
+    oploterror, legxCen - txtWidth*1.5d, legyCen - dLegY*5d, txtWidth*1.1d, txtHeight*0.6d, color=13, ERRcolor=13, PSYM=8, THICK=3, SYMSIZE=0.5, HATLENGTH = 90d
+    oploterror, legxCen + txtWidth*1.5d, legyCen - dLegY*5d, txtWidth*1.1d, txtHeight*0.6d, color=13, ERRcolor=13, PSYM=8, THICK=3, SYMSIZE=0.5, HATLENGTH = 90d
     ;
     ; Calculate the plot height in device units to centre the legend text with the polyfill labels
     xyouts, txtStrt,legYCen - dLegY*0d - txtOffset, 'Best fit', COLOR=0, CHARSIZE = Rscl
@@ -320,7 +320,7 @@ PRO PowerSpectrum_fig_example
     ;
     ;stop
     ;
-    outname1 = 'LS_HFI_PIP_fig_sample_'+SZstr+'mm_v3'
+    outname1 = 'PlanckFig_lineplot_IDL_'+SZstr+'mm'; 'LS_HFI_PIP_fig_sample_'+SZstr+'mm_v3'
     ; height and width in cm
     LS_latexify, FNAME+'.eps', ['yttl','xttl'], ['$\ell (\ell+1)C_\ell/2\pi$\quad $\left[\mu{\rm K}^2\right]$','$\ell$'], [1d,1d]*8d/11d, outname=outname1+'.eps', height=Ysz*2.54d, width=Xsz*2.54d, FDIR=FDIR;, /full
     ;LS_latexify, outname1+'.eps', 'xttl', '$\ell$', 1d, outname=outname2+'.eps', height=Ysz*2.54d - 0.2d, width=Xsz*2.54d - 0.2d
@@ -368,7 +368,8 @@ PRO PowerSpectrum_fig_example
     ;
     SZstr = SZstrs[jj]
     plotDIR = fDIR
-    fName = 'LS_HFI_PIP_fig_sample_2x'+SZstr+'mm_v2'  
+    ;fName = 'LS_HFI_PIP_fig_sample_2x'+SZstr+'mm_v2'  
+    fName = 'PlanckFig_lineplot_IDL_2x'+SZstr+'mm_'
     set_plot, "ps"
     !P.font = 0
     device, FILENAME=plotDIR+fName+'.eps',xsize=Xsz,ysize=Ysz,/inches,/color, /ENCAPSULATED, /HELVETICA, FONT_size=FNTsz
@@ -438,11 +439,11 @@ PRO PowerSpectrum_fig_example
     POLYFILL, [lx1,lx1,lx2,lx2,lx1], [ly1,ly2,ly2,ly1,ly1] - dLegY*3d, COLOR=26, /LINE_FILL, ORIENTATION=45, THICK=1.5, SPACING=0.05
     POLYFILL, [lx1,lx1,lx2,lx2,lx1], [ly1,ly2,ly2,ly1,ly1] - dLegY*3d, COLOR=26, /LINE_FILL, ORIENTATION=-45,THICK=1.5, SPACING=0.05
     LS_square, /FILL    ;   Switch the plot symbol to a filled square
-    oploterror, legxCen - txtWidth*1.5d, legyCen - dLegY*4d, txtWidth*1.1d, txtHeight*0.6d, color=18, ERRcolor=18, PSYM=8, THICK=3, SYMSIZE=0.5
-    oploterror, legxCen + txtWidth*1.5d, legyCen - dLegY*4d, txtWidth*1.1d, txtHeight*0.6d, color=18, ERRcolor=18, PSYM=8, THICK=3, SYMSIZE=0.5
+    oploterror, legxCen - txtWidth*1.5d, legyCen - dLegY*4d, txtWidth*1.1d, txtHeight*0.6d, color=18, ERRcolor=18, PSYM=8, THICK=3, SYMSIZE=0.5, HATLENGTH = 90d
+    oploterror, legxCen + txtWidth*1.5d, legyCen - dLegY*4d, txtWidth*1.1d, txtHeight*0.6d, color=18, ERRcolor=18, PSYM=8, THICK=3, SYMSIZE=0.5, HATLENGTH = 90d
     LS_circle, /FILL    ;   Switch the plot symbol to a filled circle
-    oploterror, legxCen - txtWidth*1.5d, legyCen - dLegY*5d, txtWidth*1.1d, txtHeight*0.6d, color=13, ERRcolor=13, PSYM=8, THICK=3, SYMSIZE=0.5
-    oploterror, legxCen + txtWidth*1.5d, legyCen - dLegY*5d, txtWidth*1.1d, txtHeight*0.6d, color=13, ERRcolor=13, PSYM=8, THICK=3, SYMSIZE=0.5    
+    oploterror, legxCen - txtWidth*1.5d, legyCen - dLegY*5d, txtWidth*1.1d, txtHeight*0.6d, color=13, ERRcolor=13, PSYM=8, THICK=3, SYMSIZE=0.5, HATLENGTH = 90d
+    oploterror, legxCen + txtWidth*1.5d, legyCen - dLegY*5d, txtWidth*1.1d, txtHeight*0.6d, color=13, ERRcolor=13, PSYM=8, THICK=3, SYMSIZE=0.5, HATLENGTH = 90d
     ;
     ; Calculate the plot height in device units to centre the legend text with the polyfill labels
     xyouts, txtStrt,legYCen - dLegY*0d - txtOffset, 'Best fit', COLOR=0, CHARSIZE = Rscl
@@ -514,7 +515,8 @@ PRO PowerSpectrum_fig_example
     device, /close
     set_plot, Dname
     ;
-    outname1 = 'LS_HFI_PIP_fig_sample_2x'+SZstr+'mm_v3'
+    ;outname1 = 'LS_HFI_PIP_fig_sample_2x'+SZstr+'mm_v3'
+    outname1 = 'PlanckFig_lineplot_IDL_2x'+SZstr+'mm'
     ; height and width in cm
     LS_latexify, FNAME+'.eps', ['yttl1','xttl1','yttl2','xttl2'], $
       ['\vspace{0pt}$\ell (\ell+1)C_\ell/2\pi$\quad $\left[\mu{\rm K}^2\right]$','$\ell$',$
