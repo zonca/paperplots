@@ -8,14 +8,12 @@ nside = hp.npix2nside(len(m))
 from matplotlib.colors import ListedColormap
 cmap = ListedColormap(np.loadtxt("../../data/parchment1.dat")/255.)
 cmap.set_bad("gray") # color of missing pixels
-#cmap = None
+#cmap = None # cmap None uses the default colormap
 
 use_mask = True
 
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
-
-nside = hp.npix2nside(len(m))
 
 # ratio is always 1/2
 xsize = 2000
