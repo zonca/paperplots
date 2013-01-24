@@ -1,12 +1,16 @@
 from setup_matplotlib import *
 import healpy as hp
 
-m = hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)
+m = hp.ma(hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)) * 1e3 # muK
+nside = hp.npix2nside(len(m))
 
 # setup colormap
 from matplotlib.colors import ListedColormap
 cmap = ListedColormap(np.loadtxt("../../data/parchment1.dat")/255.)
-cmap = None
+cmap.set_bad("gray") # color of missing pixels
+#cmap = None
+
+use_mask = True
 
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
@@ -29,7 +33,15 @@ latitude = np.radians(np.linspace(-90, 90, ysize))
 
 # project the map to a rectangular matrix xsize x ysize
 PHI, THETA = np.meshgrid(phi, theta)
-grid_map = m[hp.ang2pix(nside, THETA, PHI)] * 1e3
+grid_pix = hp.ang2pix(nside, THETA, PHI)
+
+if use_mask:
+    # mask
+    m.mask = np.logical_not(hp.read_map("../../data/wmap_ext_temperature_analysis_mask_r9_7yr_v4.fits"))
+    grid_mask = m.mask[grid_pix]
+    grid_map = np.ma.MaskedArray(m[grid_pix], grid_mask)
+else:
+    grid_map = m[grid_pix]
 
 for width in [18., 12., 8.8]:
     fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
