@@ -56,7 +56,10 @@ for width in [18., 12., 8.8]:
     plt.hlines(0, 0, 3300)
 
     # legend
-    plt.legend(frameon=False)
+    leg = plt.legend(frameon=True)
+    # remove box around legend
+    leg.get_frame().set_edgecolor("white")
+    leg.get_frame().set_alpha(.8)
 
     # labels
     plt.xlabel(r"$\ell$"); plt.ylabel(r"$\ell(\ell+1)C_\ell / 2\pi \:  \left[ \mu \mathrm{K}^2 \right]$")
@@ -66,8 +69,11 @@ for width in [18., 12., 8.8]:
     if width < 10:
         ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
     
+    # grid
+    plt.grid(True, which="major", axis="both")
+
     # axes limits
-    plt.ylim([-1000, 7500]); plt.xlim([0, 3300]);
+    plt.ylim([-1000, 7500]); plt.xlim([0, 3100]);
 
     # reduce white space around figure
     plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
