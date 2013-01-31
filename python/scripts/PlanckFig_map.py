@@ -6,11 +6,10 @@ nside = hp.npix2nside(len(m))
 
 # setup colormap
 from matplotlib.colors import ListedColormap
-cmap = ListedColormap(np.loadtxt("../../data/parchment1.dat")/255.)
-cmap.set_bad("gray") # color of missing pixels
-#cmap = None # cmap None uses the default colormap
+colombi1_cmap = ListedColormap(np.loadtxt("../../data/parchment1.dat")/255.)
+colombi1_cmap.set_bad("gray") # color of missing pixels
 
-use_mask = True
+use_mask = False
 
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
@@ -41,37 +40,55 @@ if use_mask:
 else:
     grid_map = m[grid_pix]
 
+from matplotlib.projections.geo import GeoAxes
+
+class ThetaFormatterShiftPi(GeoAxes.ThetaFormatter):
+    """Shifts labelling by pi
+
+    Shifts labelling from -180,180 to 0-360"""
+    def __call__(self, x, pos=None):
+        if x != 0:
+            x *= -1
+        if x < 0:
+            x += 2*np.pi
+        return super(ThetaFormatterShiftPi, self).__call__(x, pos)
+
 for width in [18., 12., 8.8]:
-    fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
-    # matplotlib is doing the mollveide projection
-    ax = fig.add_subplot(111,projection='mollweide')
+    for cmap, colormaptag in [(None, ''), (colombi1_cmap, "colombi1_")]:
 
-    # remove white space around the image
-    plt.subplots_adjust(left=0.01, right=0.99, top=0.95, bottom=0.01)
+        fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
+        # matplotlib is doing the mollveide projection
+        ax = fig.add_subplot(111,projection='mollweide')
 
-    # rasterized makes the map bitmap while the labels remain vectorial
-    image = plt.pcolormesh(longitude, latitude, grid_map, vmin=vmin, vmax=vmax, rasterized=True, cmap=cmap)
+        # remove white space around the image
+        plt.subplots_adjust(left=0.01, right=0.99, top=0.95, bottom=0.01)
 
-    # graticule
-    ax.set_longitude_grid(60)
-    if width < 10:
-        ax.set_latitude_grid(45)
-        ax.set_longitude_grid_ends(90)
+        # rasterized makes the map bitmap while the labels remain vectorial
+        # flip longitude to the astro convention
+        image = plt.pcolormesh(longitude[::-1], latitude, grid_map, vmin=vmin, vmax=vmax, rasterized=True, cmap=cmap)
 
-    # colorbar
-    cb = fig.colorbar(image, orientation='horizontal', shrink=.4, pad=0.05, ticks=[vmin, vmax])
-    cb.ax.xaxis.set_label_text(unit)
-    cb.ax.xaxis.labelpad = -8
-    # workaround for issue with viewers, see colorbar docstring
-    cb.solids.set_edgecolor("face")
+        # graticule
+        ax.set_longitude_grid(60)
+        ax.xaxis.set_major_formatter(ThetaFormatterShiftPi(60))
+        if width < 10:
+            ax.set_latitude_grid(45)
+            ax.set_longitude_grid_ends(90)
 
-    ax.tick_params(axis='x', labelsize=10)
-    ax.tick_params(axis='y', labelsize=10)
 
-    # remove longitude tick labels
-    # ax.xaxis.set_ticklabels([])
-    # remove horizontal grid
-    # ax.xaxis.set_ticks([])
+        # colorbar
+        cb = fig.colorbar(image, orientation='horizontal', shrink=.4, pad=0.05, ticks=[vmin, vmax])
+        cb.ax.xaxis.set_label_text(unit)
+        cb.ax.xaxis.labelpad = -8
+        # workaround for issue with viewers, see colorbar docstring
+        cb.solids.set_edgecolor("face")
 
-    plt.grid(True)
-    plt.savefig("../figures/PlanckFig_map_python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0)
+        ax.tick_params(axis='x', labelsize=10)
+        ax.tick_params(axis='y', labelsize=10)
+
+        # remove longitude tick labels
+        # ax.xaxis.set_ticklabels([])
+        # remove horizontal grid
+        # ax.xaxis.set_ticks([])
+
+        plt.grid(True)
+        plt.savefig("../figures/PlanckFig_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0)
