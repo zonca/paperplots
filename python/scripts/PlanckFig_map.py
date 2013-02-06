@@ -18,7 +18,7 @@ use_mask = False
 xsize = 2000
 ysize = xsize/2.
 
-unit = r"$\mu K$"
+unit = r"$\mathrm{\mu K}$"
 
 # this is the mollview min and max
 vmin = -1e3; vmax = 1e3
