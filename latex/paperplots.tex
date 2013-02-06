@@ -13,7 +13,9 @@
 \usepackage{natbib}
 \usepackage{fixltx2e}
 
-\graphicspath{{images/}{../python/figures/}{../IDL/IDL_figures/}}
+\graphicspath{{images/}{../python/figures/}{../IDL/IDL\_figures/}}
+
+\newcommand{\sometext}{Text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text}
 
 \bibpunct{(}{)}{;}{a}{}{,}
 
@@ -53,7 +55,8 @@ There is no text and therefore a lot of white space on many of the following pag
 The most common type of figure is the line plot.  Plots of the same data are shown below made by PGPlot, IDL, and Python.  
 
 
-
+$\vec{A}$ and
+$\tens{B}$
 
 
 \subsection{PGPlot}
@@ -203,7 +206,7 @@ The three equivalent figures as produced by Python are shown in Figs.~7--9.
 
 \section{Maps}
 
-An example map is shown in the three standard sizes, and also with two different colour tables.
+An example map is shown in the three standard sizes, and also with two different colour tables.  Do not, \textit{ever}, change the aspect ratio of a Mollweide projection by specifying both height and width or by any other means.  The geometric properties of the projection are destroyed.  
 
 
 \subsection{Python}
@@ -245,6 +248,7 @@ An example map is shown in the three standard sizes, and also with two different
 \label{fig:map_python180}
 \end{figure*}
 
+
 \begin{figure*}[H!b]
 \includegraphics[width=18cm]{PlanckFig_map_colombi1_python_180mm}
 \caption{Mollview, 180\,mm wide.  The map itself is bitmapped, but all text is vectorized.}
@@ -255,13 +259,42 @@ An example map is shown in the three standard sizes, and also with two different
 \clearpage
 
 
+\subsection{IDL}
 
 
 
+\begin{figure}[ht]
+\includegraphics[width=8.8cm]{PlanckFig_map_colombi1_IDL_88mm}
+\caption{Mollview, 88\,mm wide.  The map itself is bitmapped, but all text is vectorized.} 
+\label{fig:map_parchment_python88}
+\end{figure}
+
+
+
+
+\begin{figure*}
+\sidecaption
+\includegraphics[width=12cm]{PlanckFig_map_colombi1_IDL_120mm}
+\caption{Mollview, 120\,mm wide.  The map itself is bitmapped, but all text is vectorized.} 
+\label{fig:map_parchment_python120}
+\end{figure*}
+
+
+
+\begin{figure*}[H!b]
+\includegraphics[width=18cm]{PlanckFig_map_colombi1_IDL_180mm}
+\caption{Mollview, 180\,mm wide.  The map itself is bitmapped, but all text is vectorized.}
+\label{fig:map_parchment_python180}
+\end{figure*}
+
+
+\clearpage
 
 
 
 \section{Parameter-type plots}
+
+\subsection{Python}
 
 
 \begin{figure}[ht]
@@ -283,4 +316,83 @@ An example map is shown in the three standard sizes, and also with two different
 \label{fig:parameters_python180}
 \end{figure*}
 
+\clearpage
+
+
+\section{Linewidth tests}
+
+The next page shows the same plot made with six different specified line thicknesses
+in IDL, as indicated.  If the page is displayed at large size or on a high
+resolution screen, the line thicknesses vary smoothly as expected.  Printed at A4 size, they depend significantly on the resolution of the printer, with quantized variations that are somewhat unpredictable.  Try printing the next page and see what happens.  If a line thickness needs to be specified (defaults are most likely OK), use 0.15--0.20\,mm (call it 0.5\,pt).  
+
+\clearpage
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{PlanckFig_lineplot_IDL_88mm_0_10mm_lines}
+\caption{Linewidth 0.10\,mm.}
+\label{fig:parameters_python88}
+\end{figure}
+
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{PlanckFig_lineplot_IDL_88mm_0_15mm_lines}
+\caption{Linewidth 0.15\,mm.}
+\label{fig:parameters_python88}
+\end{figure}
+
+
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{PlanckFig_lineplot_IDL_88mm_0_20mm_lines}
+\caption{Linewidth 0.20\,mm.}
+\label{fig:parameters_python88}
+\end{figure}
+
+
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{PlanckFig_lineplot_IDL_88mm_0_25mm_lines}
+\caption{Linewidth 0.25\,mm.}
+\label{fig:parameters_python88}
+\end{figure}
+
+
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{PlanckFig_lineplot_IDL_88mm_0_30mm_lines}
+\caption{Linewidth 0.30\,mm.}
+\label{fig:parameters_python88}
+\end{figure}
+
+
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{PlanckFig_lineplot_IDL_88mm_0_35mm_lines}
+\caption{Linewidth 0.35\,mm.}
+\label{fig:parameters_python88}
+\end{figure}
+
+
+
+
+
+
+
+
 \end{document}
+
+
+
+
+20\pdeg8 21\pdeg8 22\pdeg8 23\pdeg8 24\pdeg8 25\pdeg8 26\pdeg8 27\pdeg8 28\pdeg8 29\pdeg8
+
+20\fdg8 21\fdg8 22\fdg8 23\fdg8 24\fdg8 25\fdg8 26\fdg8 27\fdg8 28\fdg8 29\fdg8
+
+20\parcm8 21\parcm8 22\parcm8 23\parcm8 24\parcm8 25\parcm8 26\parcm8 27\parcm8 28\parcm8 29\parcm8
+
+20\farcm8 21\farcm8 22\farcm8 23\farcm8 24\farcm8 25\farcm8 26\farcm8 27\farcm8 28\farcm8 29\farcm8
+
+20\parcs8 21\parcs8 22\parcs8 23\parcs8 24\parcs8 25\parcs8 26\parcs8 27\parcs8 28\parcs8 29\parcs8
+
+20\farcs8 21\farcs8 22\farcs8 23\farcs8 24\farcs8 25\farcs8 26\farcs8 27\farcs8 28\farcs8 29\farcs8
+
