@@ -57,7 +57,7 @@ for width in [18., 12., 8.8]:
         levels = confint2d(H)
 
         # filling contour
-        CS = ax.contourf(xem, yem, H.T, levels=levels, norm=plt.Normalize(), cmap=colormap, alpha=alpha, rasterized=True)
+        CS = ax.contourf(xem, yem, H.T, levels=levels, norm=plt.Normalize(), cmap=colormap, alpha=alpha)
         # sets border to the same color as the inner filling color
         CS2 = plt.contour(CS, levels=levels[:1], hold='on', colors=CS.tcolors[1], alpha=alpha/2.)
 
