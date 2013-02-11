@@ -4,19 +4,17 @@ Style guide plots
 Contents
 --------
 
-### Python
+Example scripts for plots following the Style Guide:
 
-Python example scripts for plots following the Style Guide:
+ * `lineplot`: CMB Power spectrum, points with errorbars, shaded areas
+ * `map`: Mollview plot with bitmapped map and vectorial legend/axis, optional graticule labels
+ * `parameters`: 2d histogram plot of parameters likelihoods
 
- * `PlanckFig_lineplot.py`: CMB Power spectrum, points with errorbars, shaded areas
- * `PlanckFig_map.py`: Mollview plot with bitmapped map and vectorial legend/axis, optional graticule labels
- * `PlanckFig_parameters.py`: 2d histogram plot of parameters likelihoods
+Languages available:
 
-### IDL
-
- * `PlanckFig_lineplot.pro`: CMB Power spectrum, points with errorbars, shaded areas
-
-### PGPLOT
+  * Python
+  * IDL
+  * PGPLOT
 
 Example PDF article
 -------------------
