@@ -51,7 +51,7 @@ class ThetaFormatterShiftPi(GeoAxes.ThetaFormatter):
             x *= -1
         if x < 0:
             x += 2*np.pi
-        return super(ThetaFormatterShiftPi, self).__call__(x, pos)
+        return GeoAxes.ThetaFormatter.__call__(self, x, pos)
 
 for width in [18., 12., 8.8]:
     for cmap, colormaptag in [(None, ''), (colombi1_cmap, "colombi1_")]:
