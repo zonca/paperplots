@@ -63,8 +63,8 @@ Ny = N_ELEMENTS(y)
 IF N_ELEMENTS(x) EQ 0 THEN x = dindgen(Ny)
 ;y = (x + 3);/1d-1
 ;
-YLG = TAG_EXIST(_EXTRA, 'YLOG')
-XLG = TAG_EXIST(_EXTRA, 'XLOG')
+IF TAG_EXIST(_EXTRA, 'YLOG') EQ 1 THEN YLG = _EXTRA.YLOG ELSE YLG = 0
+IF TAG_EXIST(_EXTRA, 'XLOG') EQ 1 THEN XLG = _EXTRA.XLOG ELSE XLG = 0
 CHSZ_Tag = TAG_EXIST(_EXTRA, 'CHARSIZE')
 IF CHSZ_TAG THEN BEGIN
   CHSZ = CHARSIZE
@@ -79,6 +79,9 @@ XS_ = (TAG_EXIST(_EXTRA, 'XS'))
 ;
 YR_ = (TAG_EXIST(_EXTRA, 'YR'))
 XR_ = (TAG_EXIST(_EXTRA, 'XR'))
+;
+XTICKINT = (TAG_EXIST(_EXTRA,'XTICKINTERVAL'))
+YTICKINT = (TAG_EXIST(_EXTRA,'YTICKINTERVAL'))
 ;
 IF YS_ THEN BEGIN
   YS_bin = STRING(_EXTRA.YS, FORMAT='(B0)')
@@ -100,9 +103,12 @@ ENDELSE
 IF YR_ THEN YRN = _EXTRA.YR ELSE YR=[0d,0d]
 IF XR_ THEN XRN = _EXTRA.XR ELSE XR=[0d,0d]
 ;
+IF XTICKINT THEN XTINT = _EXTRA.XTICKINTERVAL ELSE XTINT = 0d
+IF YTICKINT THEN YTINT = _EXTRA.YTICKINTERVAL ELSE YTINT = 0d
+;
 ;stop
 ;
-plot, x, y, YLOG=YLG, XLOG=XLG, /NODATA, /NOERASE, YS=YST, XS=XST, YTICK_GET = YT, CHARSIZE=CHSZ, XTICK_GET=XT, XR=XRN, YR=YRN
+plot, x, y, YLOG=YLG, XLOG=XLG, /NODATA, /NOERASE, YS=YST, XS=XST, YTICK_GET = YT, CHARSIZE=CHSZ, XTICK_GET=XT, XR=XRN, YR=YRN, XTICKINTERVAL=XTINT, YTICKINTERVAL=YTINT
 ; The above will plot no axes, and no lines.  It just gets the ytick values.
 ; , YS=4, XS=4;, YTICKFORMAT='(A1)' ; just to get Y tick values...
 ;
@@ -257,8 +263,8 @@ IF YLG THEN Xtick_Yval = 10d^Xtick_Yval
 Ytick_Xval = Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d  ; It is the coords for the bottom of the characters
 IF XLG THEN Ytick_Xval = 10d^Ytick_Xval
 ;
-xyouts, (Ytick_Xval + Y_DX)[0:*:ITERY], (Ytick_Yval + Y_DY)[0:*:ITERY], YT_STR[0:*:ITERY], ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA=_EXTRA
-xyouts, (Xtick_Xval + X_DX)[0:*:ITERX], (Xtick_Yval + X_DY)[0:*:ITERX], XT_STR[0:*:ITERX], ALIGNMENT=0.5, ORIENTATION=0d, /DATA, _EXTRA=_EXTRA
+IF ~TAG_EXIST(_EXTRA,'YTICKNAME') THEN xyouts, (Ytick_Xval + Y_DX)[0:*:ITERY], (Ytick_Yval + Y_DY)[0:*:ITERY], YT_STR[0:*:ITERY], ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA=_EXTRA
+IF ~TAG_EXIST(_EXTRA,'XTICKNAME') THEN xyouts, (Xtick_Xval + X_DX)[0:*:ITERX], (Xtick_Yval + X_DY)[0:*:ITERX], XT_STR[0:*:ITERX], ALIGNMENT=0.5, ORIENTATION=0d, /DATA, _EXTRA=_EXTRA
 ;
 ; Now position the axis labels, including the Y[/X]TTL_DX[/Y] KEYWORDS.
 ; First determine where I think they should be anyways.
@@ -276,10 +282,10 @@ xyouts, (Xtick_Xval + X_DX)[0:*:ITERX], (Xtick_Yval + X_DY)[0:*:ITERX], XT_STR[0
 ;  or perhaps three spaces...
 ;  
 IF YLG THEN yttl_y = 10d^((!Y.crange[1] + !Y.crange[0])/2d) ELSE yttl_y = ((!Y.crange[1] + !Y.crange[0])/2d) 
-IF XLG THEN yttl_x = 10d^(!X.CRANGE[0]) - CH_XSZ*Dev_to_DataX*3.5d ELSE yttl_x = (!X.CRANGE[0]) - CH_XSZ*Dev_to_DataX*3d
+IF XLG THEN yttl_x = 10d^(!X.CRANGE[0])*10d^((-1d)*CH_XSZ*Dev_to_DataX*3.5d) ELSE yttl_x = (!X.CRANGE[0]) - CH_XSZ*Dev_to_DataX*3d
 ;
 IF XLG THEN xttl_x = 10d^((!X.crange[1] + !X.crange[0])/2d) ELSE xttl_x = ((!X.crange[1] + !X.crange[0])/2d)
-IF YLG THEN xttl_y = 10d^(!Y.CRANGE[0]) - CH_YSZ*Dev_to_DataY*3.5d ELSE xttl_y = (!Y.CRANGE[0]) - CH_YSZ*Dev_to_DataY*2.75d
+IF YLG THEN xttl_y = 10d^(!Y.CRANGE[0])*10d^((-1d)*CH_YSZ*Dev_to_DataY*2.75d) ELSE xttl_y = (!Y.CRANGE[0]) - CH_YSZ*Dev_to_DataY*2.75d
 ;
 ;stop
 ;
