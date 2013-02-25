@@ -49,14 +49,14 @@ IF N_ELEMENTS(_EXTRA) EQ 0 THEN _EXTRA = {HFI:0}
 ;
 IF N_ELEMENTS(DECMODX) EQ 0 THEN DECMODX = 0
 IF N_ELEMENTS(DECMODY) EQ 0 THEN DECMODY = 0
-IF N_ELEMENTS(Y_DX) EQ 0 THEN Y_DX = 0
-IF N_ELEMENTS(Y_DY) EQ 0 THEN Y_DY = 0
-IF N_ELEMENTS(X_DX) EQ 0 THEN X_DX = 0
-IF N_ELEMENTS(X_DY) EQ 0 THEN X_DY = 0
-IF N_ELEMENTS(YTTL_DX) EQ 0 THEN YTTL_DX = 0
-IF N_ELEMENTS(YTTL_DY) EQ 0 THEN YTTL_DY = 0
-IF N_ELEMENTS(XTTL_DX) EQ 0 THEN XTTL_DX = 0
-IF N_ELEMENTS(XTTL_DY) EQ 0 THEN XTTL_DY = 0
+IF N_ELEMENTS(Y_DX) EQ 0 THEN Y_DX = 0d
+IF N_ELEMENTS(Y_DY) EQ 0 THEN Y_DY = 0d
+IF N_ELEMENTS(X_DX) EQ 0 THEN X_DX = 0d
+IF N_ELEMENTS(X_DY) EQ 0 THEN X_DY = 0d
+IF N_ELEMENTS(YTTL_DX) EQ 0 THEN YTTL_DX = 0d
+IF N_ELEMENTS(YTTL_DY) EQ 0 THEN YTTL_DY = 0d
+IF N_ELEMENTS(XTTL_DX) EQ 0 THEN XTTL_DX = 0d
+IF N_ELEMENTS(XTTL_DY) EQ 0 THEN XTTL_DY = 0d
 ; stop ;   
 IF N_ELEMENTS(y) EQ 0 THEN y = DINDGEN(5) + 1d
 Ny = N_ELEMENTS(y)
@@ -67,8 +67,8 @@ IF TAG_EXIST(_EXTRA, 'YLOG') EQ 1 THEN YLG = _EXTRA.YLOG ELSE YLG = 0
 IF TAG_EXIST(_EXTRA, 'XLOG') EQ 1 THEN XLG = _EXTRA.XLOG ELSE XLG = 0
 CHSZ_Tag = TAG_EXIST(_EXTRA, 'CHARSIZE')
 IF CHSZ_TAG THEN BEGIN
-  CHSZ = CHARSIZE
-  CHSZ_ = CHARSIZE 
+  CHSZ = _EXTRA.CHARSIZE
+  CHSZ_ = _EXTRA.CHARSIZE 
 ENDIF ELSE BEGIN
   CHSZ = 0
   CHSZ_ = 1d
@@ -82,6 +82,9 @@ XR_ = (TAG_EXIST(_EXTRA, 'XR'))
 ;
 XTICKINT = (TAG_EXIST(_EXTRA,'XTICKINTERVAL'))
 YTICKINT = (TAG_EXIST(_EXTRA,'YTICKINTERVAL'))
+;
+XTCKS = (TAG_EXIST(_EXTRA,'XTICKS'))
+YTCKS = (TAG_EXIST(_EXTRA,'YTICKS'))
 ;
 IF YS_ THEN BEGIN
   YS_bin = STRING(_EXTRA.YS, FORMAT='(B0)')
@@ -106,9 +109,12 @@ IF XR_ THEN XRN = _EXTRA.XR ELSE XR=[0d,0d]
 IF XTICKINT THEN XTINT = _EXTRA.XTICKINTERVAL ELSE XTINT = 0d
 IF YTICKINT THEN YTINT = _EXTRA.YTICKINTERVAL ELSE YTINT = 0d
 ;
+IF YTCKS THEN YTS = _EXTRA.YTICKS ELSE YTS=0
+IF XTCKS THEN XTS = _EXTRA.XTICKS ELSE XTS=0
+;
 ;stop
 ;
-plot, x, y, YLOG=YLG, XLOG=XLG, /NODATA, /NOERASE, YS=YST, XS=XST, YTICK_GET = YT, CHARSIZE=CHSZ, XTICK_GET=XT, XR=XRN, YR=YRN, XTICKINTERVAL=XTINT, YTICKINTERVAL=YTINT
+plot, x, y, YLOG=YLG, XLOG=XLG, /NODATA, /NOERASE, YS=YST, XS=XST, YTICK_GET = YT, CHARSIZE=CHSZ, XTICK_GET=XT, XR=XRN, YR=YRN, XTICKINTERVAL=XTINT, YTICKINTERVAL=YTINT, XTICKS=XTS, YTICKS=YTS
 ; The above will plot no axes, and no lines.  It just gets the ytick values.
 ; , YS=4, XS=4;, YTICKFORMAT='(A1)' ; just to get Y tick values...
 ;
@@ -127,10 +133,13 @@ Xtick_Xval = XT
 IF YLG THEN BEGIN
   ;  DO some things differently as it is a log plot
   YTICKNAME = STRARR(NumY) + '  '
-  YT_exp = FIX(ALOG10(YT))
-  YT_str = '10!U'+STRTRIM(STRING(YT_exp),2)+'!N'
+  YT_exp = ALOG10(YT)
+  YT_exp_DEC = 0 + DECMODY
+  LS_DecRound, YT_exp, DEC=YT_exp_DEC, STR=YT_exp_str_
+;  YT_str = '10!U'+STRTRIM(STRING(YT_exp),2)+'!N'
+  YT_str = '10!U'+YT_exp_str_+'!N'
 ENDIF ELSE BEGIN
-  ;
+  ; 
   dY = (!Y.crange[1] - !Y.crange[0])/DOUBLE(NumY - 1d)
   ;
   ; FIXME, include a check for /YLOG being set!!
@@ -138,12 +147,19 @@ ENDIF ELSE BEGIN
   ;If NumDec LT 0 THEN NumDec = 0
   LS_DecRound, YT, DEC=NumDEC, STR=YT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI ; FIXME, need to check all of this. 
   ;
+  NegYTicks = WHERE(YT LT 0d, Nyneg)
+  IF Nyneg GT 0 THEN YT_STR[NegYTicks] = YT_STR[NegYTicks]+' '
+  ;
 ENDELSE
 ;
 IF XLG THEN BEGIN
   ;  DO some things differently as it is a log plot
-  XT_exp = FIX(ALOG10(XT))
-  XT_str = '10!U'+STRTRIM(STRING(XT_exp),2)+'!N'
+  ;XT_exp = FIX(ALOG10(XT))
+  XT_exp = ALOG10(XT)
+  ;XT_str = '10!U'+STRTRIM(STRING(XT_exp),2)+'!N'
+  XT_exp_DEC = 0 + DECMODX
+  LS_DecRound, XT_exp, DEC=XT_exp_DEC, STR=XT_exp_str_
+  XT_str = '10!U'+XT_exp_str_+'!N'
 ENDIF ELSE BEGIN
   ;
   dX = (!X.crange[1] - !X.crange[0])/DOUBLE(NumX - 1d)
@@ -152,6 +168,9 @@ ENDIF ELSE BEGIN
   NumDec = CEIL(ALOG10(dX)*(-1d)) + DECMODX ;+ 1
   ;If NumDec LT 0 THEN NumDec = 0
   LS_DecRound, XT, DEC=NumDEC, STR=XT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI ; FIXME, need to check all of this. 
+  ;
+  NegXTicks = WHERE(XT LT 0d, Nxneg)
+  IF Nxneg GT 0 THEN XT_STR[NegXTicks] = XT_STR[NegXTicks]+' '
   ;
 ENDELSE
 ;
@@ -166,14 +185,19 @@ IF TAG_EXIST(_EXTRA,'YTITLE') THEN BEGIN
   _EXTRA = _EXTRA_
 ENDIF 
 ; 
-plot, x, y, _EXTRA=_EXTRA, YTICKNAME=YTICKNAME, XTICKNAME=XTICKNAME, YTITLE=' ', XTITLE=' '
+IF TAG_EXIST(_EXTRA,'YTICKNAME') THEN BEGIN
+  remove_tags, _EXTRA, 'YTICKNAME', _EXTRA_
+  _EXTRA = _EXTRA_
+ENDIF 
+;
+plot, x, y, _EXTRA=_EXTRA, YTICKNAME=YTICKNAME, XTICKNAME=XTICKNAME, YTITLE=' ', XTITLE=' ' ;  
 ;
 _EXTRA = _EXTRA_orig
 ;
 ; FIXME: I need to check the width of the character string to be sure that it doesn't overlap with neighboring data points.
 ;        If so then take every other data point.
-CH_YSZ = !D.Y_CH_SIZE ; MAX([!D.X_CH_SIZE,!D.Y_CH_SIZE])*CHSZ_
-CH_XSZ = !D.X_CH_SIZE
+CH_YSZ = !D.Y_CH_SIZE*CHSZ_ ; MAX([!D.X_CH_SIZE,!D.Y_CH_SIZE])*CHSZ_
+CH_XSZ = !D.X_CH_SIZE*CHSZ_
 ;
 IF TAG_EXIST(_EXTRA,'YCHARSIZE') THEN CH_YSZ = CH_YSZ*YCHARSIZE
 IF TAG_EXIST(_EXTRA,'XCHARSIZE') THEN CH_XSZ = CH_XSZ*XCHARSIZE
@@ -191,18 +215,18 @@ IF YLG THEN BEGIN
   Dev_to_DataY = (!Y.CRANGE[1] - !Y.CRANGE[0])/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   ;
   CH_strtsY = ALOG10(Ytick_Yval) - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d
-  CH_strtsY = 10d^CH_strtsY
+  CH_strtsY = 10d^CH_strtsY + Y_DY
   ;
   CH_endsY  = ALOG10(Ytick_Yval) + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d  
-  CH_endsY = 10d^CH_endsY
+  CH_endsY = 10d^CH_endsY + Y_DY
   ;
 ENDIF ELSE BEGIN
   ;
   Dev_to_DataY = (!Y.CRANGE[1] - !Y.CRANGE[0])/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   ;
-  CH_strtsY = Ytick_Yval - CH_lenY*CH_YSZ*Dev_to_DataY/2d
+  CH_strtsY = Ytick_Yval - CH_lenY*CH_YSZ*Dev_to_DataY/2d + Y_DY
   ;
-  CH_endsY  = Ytick_Yval + CH_lenY*CH_YSZ*Dev_to_DataY/2d  
+  CH_endsY  = Ytick_Yval + CH_lenY*CH_YSZ*Dev_to_DataY/2d + Y_DY 
   ;
 ENDELSE
 ;
@@ -214,18 +238,18 @@ IF XLG THEN BEGIN
   Dev_to_DataX = (!X.CRANGE[1] - !X.CRANGE[0])/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   ;
   CH_strtsX = ALOG10(Xtick_Xval) - CH_lenX*CH_XSZ*Dev_to_DataX/2d
-  CH_strtsX = 10d^CH_strtsX
+  CH_strtsX = 10d^CH_strtsX + X_DX
   ;
   CH_endsX  = ALOG10(Xtick_Xval) + CH_lenX*CH_XSZ*Dev_to_DataX/2d  
-  CH_endsX  = 10d^CH_endsX
+  CH_endsX  = 10d^CH_endsX + X_DX
   ; 
 ENDIF ELSE BEGIN
   ;
   Dev_to_DataX = (!X.CRANGE[1] - !X.CRANGE[0])/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   ;
-  CH_strtsX = Xtick_Xval - CH_lenX*CH_XSZ*Dev_to_DataX/2d
+  CH_strtsX = Xtick_Xval - CH_lenX*CH_XSZ*Dev_to_DataX/2d + X_DX
   ;
-  CH_endsX  = Xtick_Xval + CH_lenX*CH_XSZ*Dev_to_DataX/2d  
+  CH_endsX  = Xtick_Xval + CH_lenX*CH_XSZ*Dev_to_DataX/2d + X_DX 
   ;
 ENDELSE
 ;
@@ -251,10 +275,22 @@ IF YLG THEN YBOX = 10d^(!Y.CRANGE + [-1d,1d]*DOUBLE(!D.Y_CH_SIZE)*DOUBLE(YMAR)/D
 IF XLG THEN XBOX = 10d^(!X.CRANGE + [-1d,1d]*DOUBLE(!D.X_CH_SIZE)*DOUBLE(XMAR)/DOUBLE(!D.X_SIZE)/!X.S[1])
 ;
 IF CH_strtsY[0] LT YBOX[0] THEN YT_str[0] = ' '
+IF CH_strtsY[0] LT YBOX[0] THEN CH_strtsY_ = CH_strtsY[1:*] ELSE CH_strtsY_ = CH_strtsY
+IF CH_strtsY[0] LT YBOX[0] THEN CH_endsY_  = CH_endsY[1:*] ELSE CH_endsY_ = CH_endsY
+IF CH_strtsY[0] LT YBOX[0] THEN Yfirst = 1 ELSE Yfirst = 0
+;
 IF CH_strtsX[0] LT XBOX[0] THEN XT_str[0] = ' '
+IF CH_strtsX[0] LT XBOX[0] THEN CH_strtsX_ = CH_strtsX[1:*] ELSE CH_strtsX_ = CH_strtsX
+IF CH_strtsX[0] LT XBOX[0] THEN CH_endsX_  = CH_endsX[1:*] ELSE CH_endsX_ = CH_endsX
+IF CH_strtsX[0] LT XBOX[0] THEN Xfirst = 1 ELSE Xfirst = 0
 ;
 IF CH_endsY[NumY - 1] GT YBOX[1] THEN YT_str[NumY - 1] = ' '
+IF CH_endsY[NumY - 1] GT YBOX[1] THEN CH_endsY_  = CH_endsY_[0:N_ELEMENTS(CH_endsY_) - 2]
+IF CH_endsY[NumY - 1] GT YBOX[1] THEN CH_strtsY_ = CH_strtsY_[0:N_ELEMENTS(CH_strtsY_) - 2]
+;
 IF CH_endsX[NumX - 1] GT XBOX[1] THEN XT_str[NumX - 1] = ' '
+IF CH_endsX[NumX - 1] GT XBOX[1] THEN CH_endsX_  = CH_endsX_[0:N_ELEMENTS(CH_endsX_) - 2]
+IF CH_endsX[NumX - 1] GT XBOX[1] THEN CH_strtsX_ = CH_strtsX_[0:N_ELEMENTS(CH_strtsX_) - 2]
 ;
 ;stop
 ;
@@ -263,8 +299,16 @@ IF YLG THEN Xtick_Yval = 10d^Xtick_Yval
 Ytick_Xval = Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d  ; It is the coords for the bottom of the characters
 IF XLG THEN Ytick_Xval = 10d^Ytick_Xval
 ;
-IF ~TAG_EXIST(_EXTRA,'YTICKNAME') THEN xyouts, (Ytick_Xval + Y_DX)[0:*:ITERY], (Ytick_Yval + Y_DY)[0:*:ITERY], YT_STR[0:*:ITERY], ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA=_EXTRA
-IF ~TAG_EXIST(_EXTRA,'XTICKNAME') THEN xyouts, (Xtick_Xval + X_DX)[0:*:ITERX], (Xtick_Yval + X_DY)[0:*:ITERX], XT_STR[0:*:ITERX], ALIGNMENT=0.5, ORIENTATION=0d, /DATA, _EXTRA=_EXTRA
+; Check to see if there is overlap between the first x and first y labels
+IF (Ytick_Xval + Y_DX)[0] GT (CH_strtsX_)[0] THEN BEGIN  ; the first y axis tick label may be printed over the first x axis tick label
+  ;
+  IF YLG THEN XticksTop = (10d^( ALOG10(Xtick_Yval) + CH_YSZ*Dev_to_DataY))[0] ELSE XticksTop = (Xtick_Yval + CH_YSZ*Dev_to_DataY)[0]
+  IF CH_strtsY_[0] LT XticksTop THEN YT_str[Yfirst] = ' '
+  ;
+ENDIF
+;
+IF ~TAG_EXIST(_EXTRA,'YTICKNAME') THEN xyouts, (Ytick_Xval + Y_DX)[0:*:ITERY], (Ytick_Yval + Y_DY)[0:*:ITERY], YT_STR[0:*:ITERY], ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA=_EXTRA ELSE xyouts, (Ytick_Xval + Y_DX), (Ytick_Yval + Y_DY), _EXTRA.YTICKNAME, ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA=_EXTRA
+IF ~TAG_EXIST(_EXTRA,'XTICKNAME') THEN xyouts, (Xtick_Xval + X_DX)[0:*:ITERX], (Xtick_Yval + X_DY)[0:*:ITERX], XT_STR[0:*:ITERX], ALIGNMENT=0.5, ORIENTATION=0d, /DATA, _EXTRA=_EXTRA ELSE xyouts, (Xtick_Xval + X_DX), (Xtick_Yval + X_DY), _EXTRA.XTICKNAME, ALIGNMENT=0.5, ORIENTATION=0d, /DATA, _EXTRA=_EXTRA
 ;
 ; Now position the axis labels, including the Y[/X]TTL_DX[/Y] KEYWORDS.
 ; First determine where I think they should be anyways.
@@ -1065,13 +1109,33 @@ PRO remove_tags, struct, tagnames, newstruct
   nt=n_elements(tagnames)
   IF nt EQ 1 THEN BEGIN
       t=where(tags NE tagnames[0],nw) 
-      IF nw EQ n THEN BEGIN
+      CASE nw OF
+        0: BEGIN ; there are no more tags after the one is removed
+          ;
+          print,'-------------------------------------------------------------'
+          message,'This would remove all tags! Dummy tag "foo" added to structure',/inf
+          print,'-------------------------------------------------------------'
+          newstruct=create_struct('foo',' ')
+          return
+          ;
+        END
+        n: BEGIN ;  THe numbwer of tags is the same with and without, therefore no match
           print,'-----------------------------------------------------'
           message,'Tag did not match, structure unchanged',/inf
           print,'-----------------------------------------------------'
           newstruct = struct
           return
-      ENDIF 
+        END
+        ELSE: ; Maybe something needed here, but think is OK blank for now.
+      ENDCASE
+;      IF nw EQ n THEN BEGIN
+;          print,'-----------------------------------------------------'
+;          message,'Tag did not match, structure unchanged',/inf
+;          print,'-----------------------------------------------------'
+;          newstruct = struct
+;          return
+;      ENDIF ELSE BEGIN  ;  There is only one tag, and it is desired to be removed.  add a dummy tag
+;      ENDELSE
   ENDIF ELSE BEGIN 
       match,tags,tagnames,m
       IF m[0] EQ -1 THEN BEGIN
