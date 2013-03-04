@@ -9,8 +9,6 @@ from matplotlib.colors import ListedColormap
 colombi1_cmap = ListedColormap(np.loadtxt("../../data/parchment1.dat")/255.)
 colombi1_cmap.set_bad("gray") # color of missing pixels
 
-use_mask = False
-
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
 
@@ -32,13 +30,7 @@ latitude = np.radians(np.linspace(-90, 90, ysize))
 PHI, THETA = np.meshgrid(phi, theta)
 grid_pix = hp.ang2pix(nside, THETA, PHI)
 
-if use_mask:
-    # mask
-    m.mask = np.logical_not(hp.read_map("../../data/wmap_ext_temperature_analysis_mask_r9_7yr_v4.fits"))
-    grid_mask = m.mask[grid_pix]
-    grid_map = np.ma.MaskedArray(m[grid_pix], grid_mask)
-else:
-    grid_map = m[grid_pix]
+grid_map = m[grid_pix]
 
 from matplotlib.projections.geo import GeoAxes
 
@@ -62,16 +54,13 @@ for cmap, colormaptag in [(colombi1_cmap, "colombi1_")]:
     figure_rows, figure_columns = 2, 2
     for submap in range(4):
         # matplotlib is doing the mollveide projection
-        ax = fig.add_subplot(figure_rows,figure_columns,submap,projection='mollweide')
-
-        # remove white space around the image
-        #plt.subplots_adjust(left=0.01, right=0.99, top=0.95, bottom=0.01)
+        ax = fig.add_subplot(figure_rows, figure_columns, submap,projection='mollweide')
 
         # rasterized makes the map bitmap while the labels remain vectorial
         # flip longitude to the astro convention
         image = plt.pcolormesh(longitude[::-1], latitude, grid_map, vmin=vmin, vmax=vmax, rasterized=True, cmap=cmap)
 
-        plt.title("Title of submap %d" % submap)
+        plt.title("Title of submap %d" % submap, fontsize='small')
         # remove tick labels
         ax.xaxis.set_ticklabels([])
         ax.yaxis.set_ticklabels([])
