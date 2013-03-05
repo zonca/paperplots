@@ -8,6 +8,8 @@ nside = hp.npix2nside(len(m))
 from matplotlib.colors import ListedColormap
 colombi1_cmap = ListedColormap(np.loadtxt("../../data/parchment1.dat")/255.)
 colombi1_cmap.set_bad("gray") # color of missing pixels
+colombi1_cmap.set_under("white") # color of background, necessary if you want to use
+# this colormap directly with hp.mollview(m, cmap=colombi1_cmap)
 
 use_mask = False
 
