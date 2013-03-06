@@ -132,6 +132,9 @@ YTICKINT = (TAG_EXIST(_EXTRA,'YTICKINTERVAL'))
 XTCKS = (TAG_EXIST(_EXTRA,'XTICKS'))
 YTCKS = (TAG_EXIST(_EXTRA,'YTICKS'))
 ;
+XTKV  = (TAG_EXIST(_EXTRA, 'XTICKV'))
+YTKV  = (TAG_EXIST(_EXTRA, 'YTICKV'))
+;
 IF YS_ THEN BEGIN
   YS_bin = STRING(_EXTRA.YS, FORMAT='(B0)')
   YS_4 = STRMID('000000'+YS_bin, 2, 1, /REVERSE_OFFSET)
@@ -158,9 +161,13 @@ IF YTICKINT THEN YTINT = _EXTRA.YTICKINTERVAL ELSE YTINT = 0d
 IF YTCKS THEN YTS = _EXTRA.YTICKS ELSE YTS=0
 IF XTCKS THEN XTS = _EXTRA.XTICKS ELSE XTS=0
 ;
+IF YTKV THEN YVS = _EXTRA.YTICKV ELSE YVS=0
+IF XTKV THEN XVS = _EXTRA.XTICKV ELSE XVS=0
+;
 ;stop
 ;
-plot, x, y, YLOG=YLG, XLOG=XLG, /NODATA, /NOERASE, YS=YST, XS=XST, YTICK_GET = YT, CHARSIZE=CHSZ, XTICK_GET=XT, XR=XRN, YR=YRN, XTICKINTERVAL=XTINT, YTICKINTERVAL=YTINT, XTICKS=XTS, YTICKS=YTS
+plot, x, y, YLOG=YLG, XLOG=XLG, /NODATA, /NOERASE, YS=YST, XS=XST, YTICK_GET = YT, CHARSIZE=CHSZ, XTICK_GET=XT, XR=XRN, YR=YRN, $
+  XTICKINTERVAL=XTINT, YTICKINTERVAL=YTINT, XTICKS=XTS, YTICKS=YTS, XTICKV=XVS, YTICKV=YVS
 ; The above will plot no axes, and no lines.  It just gets the ytick values.
 ; , YS=4, XS=4;, YTICKFORMAT='(A1)' ; just to get Y tick values...
 ;
@@ -186,8 +193,9 @@ IF YLG THEN BEGIN
   YT_str = '10!U'+YT_exp_str_+'!N'
   IF KEYWORD_SET(YLGNAT) THEN BEGIN
     ;  Do not want the axis labels in 10^n notation.
-    YT_EXP_DEC = (-1d)*YT_EXP + DECMODY
-    LS_DecRound, YT, DEC=YT_EXP_DEC, STR=YT_STR
+    YT_EXP_DEC = CEIL((-1d)*YT_EXP) + DECMODY
+    LS_DecRound, YT, DEC=YT_EXP_DEC, STR=YT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI
+    ;
     NegYTicks = WHERE(YT LT 0d, Nyneg)
     IF Nyneg GT 0 THEN YT_STR[NegYTicks] = YT_STR[NegYTicks]+' '
   ENDIF
@@ -215,8 +223,8 @@ IF XLG THEN BEGIN
   XT_str = '10!U'+XT_exp_str_+'!N'
   IF KEYWORD_SET(XLGNAT) THEN BEGIN
     ;  Do not want the axis labels in 10^n notation.
-    XT_EXP_DEC = (-1d)*XT_EXP + DECMODX
-    LS_DecRound, XT, DEC=XT_EXP_DEC, STR=XT_STR
+    XT_EXP_DEC = CEIL((-1d)*XT_EXP) + DECMODX
+    LS_DecRound, XT, DEC=XT_EXP_DEC, STR=XT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI
     NegXTicks = WHERE(XT LT 0d, Nxneg)
     IF Nxneg GT 0 THEN XT_STR[NegXTicks] = XT_STR[NegXTicks]+' '
   ENDIF
@@ -275,12 +283,12 @@ IF YLG THEN BEGIN
   ;Dev_to_DataY = (ALOG10(!Y.CRANGE[1]) - ALOG10(!Y.CRANGE[0]))/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   Dev_to_DataY = (!Y.CRANGE[1] - !Y.CRANGE[0])/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   ;
-  ;CH_strtsY = ALOG10(Ytick_Yval) - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d
-  CH_strtsY = ALOG10(Ytick_Yval - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d)
+  CH_strtsY = ALOG10(Ytick_Yval) - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d
+  ;CH_strtsY = ALOG10(Ytick_Yval - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d)
   CH_strtsY = 10d^CH_strtsY + Y_DY
   ;
-  ;CH_endsY  = ALOG10(Ytick_Yval) + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d  
-  CH_endsY  = ALOG10(Ytick_Yval + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d)
+  CH_endsY  = ALOG10(Ytick_Yval) + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d  
+  ;CH_endsY  = ALOG10(Ytick_Yval + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d)
   CH_endsY = 10d^CH_endsY + Y_DY
   ;
 ENDIF ELSE BEGIN
@@ -301,12 +309,12 @@ IF XLG THEN BEGIN
   ;Dev_to_DataX = (ALOG10(!X.CRANGE[1]) - ALOG10(!X.CRANGE[0]))/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   Dev_to_DataX = (!X.CRANGE[1] - !X.CRANGE[0])/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   ;
-  ;CH_strtsX = ALOG10(Xtick_Xval) - CH_lenX*CH_XSZ*Dev_to_DataX/2d
-  CH_strtsX = ALOG10(Xtick_Xval - CH_lenX*CH_XSZ*Dev_to_DataX/2d)
+  CH_strtsX = ALOG10(Xtick_Xval) - CH_lenX*CH_XSZ*Dev_to_DataX/2d
+  ;CH_strtsX = ALOG10(Xtick_Xval - CH_lenX*CH_XSZ*Dev_to_DataX/2d)
   CH_strtsX = 10d^CH_strtsX + X_DX
   ;
-  ;CH_endsX  = ALOG10(Xtick_Xval) + CH_lenX*CH_XSZ*Dev_to_DataX/2d  
-  CH_endsX  = ALOG10(Xtick_Xval + CH_lenX*CH_XSZ*Dev_to_DataX/2d)
+  CH_endsX  = ALOG10(Xtick_Xval) + CH_lenX*CH_XSZ*Dev_to_DataX/2d  
+  ;CH_endsX  = ALOG10(Xtick_Xval + CH_lenX*CH_XSZ*Dev_to_DataX/2d)
   CH_endsX  = 10d^CH_endsX + X_DX
   ; 
 ENDIF ELSE BEGIN
