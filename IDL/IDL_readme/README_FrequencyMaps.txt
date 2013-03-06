@@ -24,3 +24,4 @@ Here are a few comments on using the frequency maps example.
   map353 = map353 - 681d + 250d = map353 - 431d
 7. The 545 and 857 maps are plotted in kJy/sr, not uK_CMB.  Plots of the 545/857 GHz maps in uK_RJ do work, but do not utilize the full dynamic range of the colourtable, so use the kJy/sr scaling instead.
 8. WARNING:  along with pt. 6 above, the plot routine is very sensitive to offsets in the map monopole value.  small offsets can cause the maps to appear more blue or more red than desired.  Please check this as you generate your plots.  Also, please state what offsets are removed from any figures within the caption or other text.  
+9. The frequency map example also requires the file rgb_37.idl, which is restored within the HFI_CT routine via the /HIGHDR toggle keyword and HDFILE='/path/rgb_37.idl' setting.
