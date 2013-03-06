@@ -93,4 +93,4 @@ for width in [18., 12., 8.8]:
         # ax.xaxis.set_ticks([])
 
         plt.grid(True)
-        plt.savefig("../figures/PlanckFig_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0)
+        plt.savefig("../figures/PlanckFig_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)

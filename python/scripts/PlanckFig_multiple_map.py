@@ -74,4 +74,4 @@ for cmap, colormaptag in [(colombi1_cmap, "colombi1_")]:
     cb.ax.xaxis.labelpad = -8
     # workaround for issue with viewers, see colorbar docstring
     cb.solids.set_edgecolor("face")
-    plt.savefig("../figures/PlanckFig_multiple_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0)
+    plt.savefig("../figures/PlanckFig_multiple_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)

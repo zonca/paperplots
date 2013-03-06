@@ -83,4 +83,4 @@ for width in [18., 12., 8.8]:
         ticklabel.set_rotation("vertical")
 
     # save to pdf with right bounding box
-    plt.savefig("../figures/PlanckFig_lineplot_python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0)
+    plt.savefig("../figures/PlanckFig_lineplot_python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)
