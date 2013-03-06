@@ -39,7 +39,8 @@
 ;-
 PRO HFI_plot, x, y, _EXTRA=_EXTRA, DECMODX=DECMODX, DECMODY=DECMODY, $
   Y_DX=Y_DX, Y_DY=Y_DY, X_DX=X_DX, X_DY=X_DY, $
-  YTTL_DX=YTTL_DX, YTTL_DY=YTTL_DY, XTTL_DX=XTTL_DX, XTTL_DY=XTTL_DY
+  YTTL_DX=YTTL_DX, YTTL_DY=YTTL_DY, XTTL_DX=XTTL_DX, XTTL_DY=XTTL_DY, $
+  DEBUG=DEBUG, XTICK_GET=XT, YTICK_GET=YT
 ;
 ; This script is to plot to a virtual device to get the y-axis labels, and allow them to be re-plotted with a 90^o anti-clockwise rotation.
 ; ;
@@ -62,6 +63,49 @@ IF N_ELEMENTS(y) EQ 0 THEN y = DINDGEN(5) + 1d
 Ny = N_ELEMENTS(y)
 IF N_ELEMENTS(x) EQ 0 THEN x = dindgen(Ny)
 ;y = (x + 3);/1d-1
+;
+; check for some alternate names to my keywords:  I shortened XRANGE to XR, XSTYLE to XS, etc.
+_EXTRA_orig = _EXTRA
+;
+IF TAG_EXIST(_EXTRA, 'XRANGE') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'XR', _EXTRA.XRANGE)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'XSTYLE') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'XS', _EXTRA.XSTYLE)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'XSTY') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'XS', _EXTRA.XSTY)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'XST') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'XS', _EXTRA.XST)
+  _EXTRA = temporary(_E)
+ENDIF
+;
+;
+IF TAG_EXIST(_EXTRA, 'YRANGE') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'YR', _EXTRA.YRANGE)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'YSTYLE') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'YS', _EXTRA.YSTYLE)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'YSTY') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'YS', _EXTRA.YSTY)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'YST') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'YS', _EXTRA.YST)
+  _EXTRA = temporary(_E)
+ENDIF
+;
+;IF TAG_EXIST(_EXTRA, 'YRANGE') EQ 1 THEN _EXTRA = create_struct(temporary(_EXTRA), 'YR', _EXTRA.YRANGE)
+;IF TAG_EXIST(_EXTRA, 'YSTYLE') EQ 1 THEN _EXTRA = create_struct(temporary(_EXTRA), 'YS', _EXTRA.YSTYLE)
+;IF TAG_EXIST(_EXTRA, 'YSTY')   EQ 1 THEN _EXTRA = create_struct(temporary(_EXTRA), 'YS', _EXTRA.YSTY)
+;IF TAG_EXIST(_EXTRA, 'YST')    EQ 1 THEN _EXTRA = create_struct(temporary(_EXTRA), 'YS', _EXTRA.YST)
 ;
 IF TAG_EXIST(_EXTRA, 'YLOG') EQ 1 THEN YLG = _EXTRA.YLOG ELSE YLG = 0
 IF TAG_EXIST(_EXTRA, 'XLOG') EQ 1 THEN XLG = _EXTRA.XLOG ELSE XLG = 0
@@ -294,10 +338,12 @@ IF CH_endsX[NumX - 1] GT XBOX[1] THEN CH_strtsX_ = CH_strtsX_[0:N_ELEMENTS(CH_st
 ;
 ;stop
 ;
-Xtick_Yval = Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d   ; Need to subtract one character as xyouts takes the bottom of the letter location.
-IF YLG THEN Xtick_Yval = 10d^Xtick_Yval
-Ytick_Xval = Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d  ; It is the coords for the bottom of the characters
-IF XLG THEN Ytick_Xval = 10d^Ytick_Xval
+;Xtick_Yval = Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d   ; Need to subtract one character as xyouts takes the bottom of the letter location.
+IF YLG THEN Xtick_Yval = 10d^(Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d) ELSE Xtick_Yval = Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d   ; Need to subtract one character as xyouts takes the bottom of the letter location.
+;IF YLG THEN Xtick_Yval = 10d^(Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d) ELSE
+;Ytick_Xval = Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d  ; It is the coords for the bottom of the characters
+IF XLG THEN Ytick_Xval = 10d^(Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d) ELSE Ytick_Xval = Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d  ; It is the coords for the bottom of the characters
+;IF XLG THEN Ytick_Xval = 10d^Ytick_Xval
 ;
 ; Check to see if there is overlap between the first x and first y labels
 IF (Ytick_Xval + Y_DX)[0] GT (CH_strtsX_)[0] THEN BEGIN  ; the first y axis tick label may be printed over the first x axis tick label
@@ -336,6 +382,17 @@ IF YLG THEN xttl_y = 10d^(!Y.CRANGE[0])*10d^((-1d)*CH_YSZ*Dev_to_DataY*2.75d) EL
 IF TAG_EXIST(_EXTRA,'XTITLE') THEN xyouts, xttl_x + xttl_dx, xttl_y + xttl_dy, ALIGNMENT=0.5, /DATA, _EXTRA.XTITLE, _EXTRA=_EXTRA
 IF TAG_EXIST(_EXTRA,'YTITLE') THEN xyouts, yttl_x + yttl_dx, yttl_y + yttl_dy, ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA.YTITLE, _EXTRA=_EXTRA
 ;
+IF KEYWORD_SET(DEBUG) THEN BEGIN
+  print, '    '
+  print, 'YTICKS were supposed to be printed at x=', YTICK_XVAL[0],' and y=',YTICK_YVAL
+  print, 'The Y ticks were supposed to be :', YT_STR
+  IF TAG_EXIST(_EXTRA,'YTITLE') THEN print, 'YTITLE of "',_EXTRA.YTITLE,'" was supposed to be printed at x=',yttl_x + yttl_dx,' and y=',yttl_y + yttl_dy
+  print, '    '
+  print, 'XTICKS were supposed to be printed at x=', XTICK_XVAL,' and y=',XTICK_YVAL[0]
+  print, 'The X ticks were supposed to be :', XT_STR
+  IF TAG_EXIST(_EXTRA,'XTITLE') THEN print, 'XTITLE of "',_EXTRA.XTITLE,'" was supposed to be printed at x=',xttl_x + xttl_dx,' and y=',xttl_y + xttl_dy
+  print, '     '
+ENDIF
 ;stop
 ;
 ;CLP = !P.CLIP
