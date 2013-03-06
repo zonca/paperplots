@@ -40,7 +40,7 @@
 PRO HFI_plot, x, y, _EXTRA=_EXTRA, DECMODX=DECMODX, DECMODY=DECMODY, $
   Y_DX=Y_DX, Y_DY=Y_DY, X_DX=X_DX, X_DY=X_DY, $
   YTTL_DX=YTTL_DX, YTTL_DY=YTTL_DY, XTTL_DX=XTTL_DX, XTTL_DY=XTTL_DY, $
-  DEBUG=DEBUG, XTICK_GET=XT, YTICK_GET=YT
+  DEBUG=DEBUG, XTICK_GET=XT, YTICK_GET=YT, XLGNAT=XLGNAT, YLGNAT=YLGNAT
 ;
 ; This script is to plot to a virtual device to get the y-axis labels, and allow them to be re-plotted with a 90^o anti-clockwise rotation.
 ; ;
@@ -58,6 +58,8 @@ IF N_ELEMENTS(YTTL_DX) EQ 0 THEN YTTL_DX = 0d
 IF N_ELEMENTS(YTTL_DY) EQ 0 THEN YTTL_DY = 0d
 IF N_ELEMENTS(XTTL_DX) EQ 0 THEN XTTL_DX = 0d
 IF N_ELEMENTS(XTTL_DY) EQ 0 THEN XTTL_DY = 0d
+IF N_ELEMENTS(XLGNAT) EQ 0 THEN XLGNAT = 0
+IF N_ELEMENTS(YLGNAT) EQ 0 THEN YLGNAT = 0
 ; stop ;   
 IF N_ELEMENTS(y) EQ 0 THEN y = DINDGEN(5) + 1d
 Ny = N_ELEMENTS(y)
@@ -182,6 +184,13 @@ IF YLG THEN BEGIN
   LS_DecRound, YT_exp, DEC=YT_exp_DEC, STR=YT_exp_str_
 ;  YT_str = '10!U'+STRTRIM(STRING(YT_exp),2)+'!N'
   YT_str = '10!U'+YT_exp_str_+'!N'
+  IF KEYWORD_SET(YLGNAT) THEN BEGIN
+    ;  Do not want the axis labels in 10^n notation.
+    YT_EXP_DEC = (-1d)*YT_EXP + DECMODY
+    LS_DecRound, YT, DEC=YT_EXP_DEC, STR=YT_STR
+    NegYTicks = WHERE(YT LT 0d, Nyneg)
+    IF Nyneg GT 0 THEN YT_STR[NegYTicks] = YT_STR[NegYTicks]+' '
+  ENDIF
 ENDIF ELSE BEGIN
   ; 
   dY = (!Y.crange[1] - !Y.crange[0])/DOUBLE(NumY - 1d)
@@ -204,6 +213,13 @@ IF XLG THEN BEGIN
   XT_exp_DEC = 0 + DECMODX
   LS_DecRound, XT_exp, DEC=XT_exp_DEC, STR=XT_exp_str_
   XT_str = '10!U'+XT_exp_str_+'!N'
+  IF KEYWORD_SET(XLGNAT) THEN BEGIN
+    ;  Do not want the axis labels in 10^n notation.
+    XT_EXP_DEC = (-1d)*XT_EXP + DECMODX
+    LS_DecRound, XT, DEC=XT_EXP_DEC, STR=XT_STR
+    NegXTicks = WHERE(XT LT 0d, Nxneg)
+    IF Nxneg GT 0 THEN XT_STR[NegXTicks] = XT_STR[NegXTicks]+' '
+  ENDIF
 ENDIF ELSE BEGIN
   ;
   dX = (!X.crange[1] - !X.crange[0])/DOUBLE(NumX - 1d)
@@ -253,15 +269,18 @@ ITERY = 1
 ITERX = 1
 IF YLG THEN BEGIN 
   ;
-  CH_lenY = (CH_lenY - 4d - 2d)*0.62d + 2d
+  ;CH_lenY = (CH_lenY - 4d - 2d)*0.62d + 2d
+  IF KEYWORD_SET(YLGNAT) THEN CH_lenY = CH_lenY ELSE CH_lenY = (CH_lenY - 4d - 2d)*0.62d + 2d
   ;
   ;Dev_to_DataY = (ALOG10(!Y.CRANGE[1]) - ALOG10(!Y.CRANGE[0]))/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   Dev_to_DataY = (!Y.CRANGE[1] - !Y.CRANGE[0])/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   ;
-  CH_strtsY = ALOG10(Ytick_Yval) - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d
+  ;CH_strtsY = ALOG10(Ytick_Yval) - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d
+  CH_strtsY = ALOG10(Ytick_Yval - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d)
   CH_strtsY = 10d^CH_strtsY + Y_DY
   ;
-  CH_endsY  = ALOG10(Ytick_Yval) + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d  
+  ;CH_endsY  = ALOG10(Ytick_Yval) + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d  
+  CH_endsY  = ALOG10(Ytick_Yval + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d)
   CH_endsY = 10d^CH_endsY + Y_DY
   ;
 ENDIF ELSE BEGIN
@@ -276,15 +295,18 @@ ENDELSE
 ;
 IF XLG THEN BEGIN 
   ;
-  CH_lenX = (CH_lenX - 4d - 2d)*0.62d + 2d
+  ;CH_lenX = (CH_lenX - 4d - 2d)*0.62d + 2d
+  IF KEYWORD_SET(XLGNAT) THEN CH_lenX = CH_lenX ELSE CH_lenX = (CH_lenX - 4d - 2d)*0.62d + 2d
   ;
   ;Dev_to_DataX = (ALOG10(!X.CRANGE[1]) - ALOG10(!X.CRANGE[0]))/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   Dev_to_DataX = (!X.CRANGE[1] - !X.CRANGE[0])/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   ;
-  CH_strtsX = ALOG10(Xtick_Xval) - CH_lenX*CH_XSZ*Dev_to_DataX/2d
+  ;CH_strtsX = ALOG10(Xtick_Xval) - CH_lenX*CH_XSZ*Dev_to_DataX/2d
+  CH_strtsX = ALOG10(Xtick_Xval - CH_lenX*CH_XSZ*Dev_to_DataX/2d)
   CH_strtsX = 10d^CH_strtsX + X_DX
   ;
-  CH_endsX  = ALOG10(Xtick_Xval) + CH_lenX*CH_XSZ*Dev_to_DataX/2d  
+  ;CH_endsX  = ALOG10(Xtick_Xval) + CH_lenX*CH_XSZ*Dev_to_DataX/2d  
+  CH_endsX  = ALOG10(Xtick_Xval + CH_lenX*CH_XSZ*Dev_to_DataX/2d)
   CH_endsX  = 10d^CH_endsX + X_DX
   ; 
 ENDIF ELSE BEGIN
