@@ -997,9 +997,12 @@ END
 ; 
 ;-
 pro LS_latexify, filename, tag, tex, scale, outname=outname, $
-      height=height, width=width, full=full, FDIR=FDIR, POSN=POSN, PSPOSN=PSPOSN
+      height=height, width=width, full=full, FDIR=FDIR, POSN=POSN, PSPOSN=PSPOSN, EXWID=EXWID, EXHGT=EXHGT, ALTEPS=ALTEPS, KEEPPS=KEEPPS
   ;
   ;IF N_ELEMENTS(POSN) EQ 0 THEN
+  ;
+  IF N_ELEMENTS(EXWID) EQ 0 THEN EXWID = 0.1d  ;  cm
+  IF N_ELEMENTS(EXHGT) EQ 0 THEN EXHGT = 0.1d  ;  cm
   ;
   if ~keyword_set(scale) then scale=replicate(1, n_elements(tag))
   scale = strcompress(string(scale), /remove_all)
@@ -1008,14 +1011,17 @@ pro LS_latexify, filename, tag, tex, scale, outname=outname, $
     outname='LS_HFIfig2.eps'
     noname=1
   endif
+  ;
+  IF KEYWORD_SET(KEEPPS) THEN PSname = (STRSPLIT(outname,'.eps',/REGEX, /EXTRACT))[0]+'.ps'
+  ;
   openw, lun, FDIR+'LS_HFIfig_temp.tex', /get_lun
   printf, lun, '\documentclass{article}'
   printf, lun, '\usepackage{geometry, graphicx, psfrag}'
   printf, lun, '\renewcommand{\familydefault}{\sfdefault}'
   printf, lun,'\usepackage{helvet}'
   printf, lun,'\pagestyle{empty}'
-  printf, lun,'\geometry{paperwidth='+strcompress(string(width+0.1), /remove_all)+'cm,'+$
-                      'paperheight='+strcompress(string(height+0.1), /remove_all)+'cm,margin=0pt}'
+  printf, lun,'\geometry{paperwidth='+strcompress(string(width+EXWID), /remove_all)+'cm,'+$
+                      'paperheight='+strcompress(string(height+EXHGT), /remove_all)+'cm,margin=0pt}'
   printf, lun,'\begin{document}'
   for i=0, n_elements(tag)-1 do $
         printf, lun,'\psfrag{'+tag[i]+'}[cc][cc]['+scale[i]+']{'+tex[i]+'}'
@@ -1027,20 +1033,30 @@ pro LS_latexify, filename, tag, tex, scale, outname=outname, $
   ;
   spawn, 'cd '+FDIR+' && latex '+'LS_HFIfig_temp.tex', msg0
   spawn, 'cd '+FDIR+' && dvips -o '+'LS_HFIfig_temp.ps '+'LS_HFIfig_temp.dvi', msg1
-  spawn, 'cd '+FDIR+' && ps2epsi '+'LS_HFIfig_temp.ps '+'LS_HFIfig_temp.epsi', msg2
+  IF KEYWORD_SET(ALTEPS) THEN BEGIN
+    spawn, 'cd '+FDIR+' && ./ps2eps.pl -g -l '+'LS_HFIfig_temp.ps ', msg2
+    spawn, 'mv '+FDIR+'LS_HFIfig_temp.eps '+FDIR+outname, msg25 
+  ENDIF ELSE BEGIN
+    spawn, 'cd '+FDIR+' && ps2epsi '+'LS_HFIfig_temp.ps '+'LS_HFIfig_temp.epsi', msg2
+    ;
+    ; Check to see if the file *.eps file already exists, if so rename the old one so the perl script will work.
+    ; 
+    flCheck = file_test(FDIR+outname)
+    IF flCheck THEN spawn, 'cd '+FDIR+' && mv -f '+outname+' old_'+outname, msg3
+    ;
+    ;spawn, " && perl -ne 'print unless /^%%BeginPreview/../^%%EndPreview/' <"+FDIR+'LS_HFIfig_temp.epsi > '+FDIR+outname, msg4
+    spawn, " perl -ne 'print unless /^%%BeginPreview/../^%%EndPreview/' <"+FDIR+'LS_HFIfig_temp.epsi > '+FDIR+outname, msg4
+    ;
+  ENDELSE
   ;
-  ; Check to see if the file *.eps file already exists, if so rename the old one so the perl script will work.
-  ; 
-  flCheck = file_test(FDIR+outname)
-  IF flCheck THEN spawn, 'cd '+FDIR+' && mv -f '+outname+' old_'+outname, msg3
-  ;
-  ;spawn, " && perl -ne 'print unless /^%%BeginPreview/../^%%EndPreview/' <"+FDIR+'LS_HFIfig_temp.epsi > '+FDIR+outname, msg4
-  spawn, " perl -ne 'print unless /^%%BeginPreview/../^%%EndPreview/' <"+FDIR+'LS_HFIfig_temp.epsi > '+FDIR+outname, msg4
+  IF KEYWORD_SET(KEEPPS) THEN BEGIN
+    spawn, 'mv '+FDIR+'LS_HFIfig_temp.ps '+FDIR+psname
+  ENDIF
   ;
   ; Clean up the temporary files now.
   ;
   if keyword_set(noname) then begin
-    spawn, 'mv LS_HFIfig2.eps '+filename
+    spawn, 'mv '+FDIR+'LS_HFIfig2.eps '+FDIR+filename
     outname=filename
   endif
   ;stop
@@ -1611,7 +1627,8 @@ end
 ;  For more information about HEALPix see http://healpix.jpl.nasa.gov
 ;
 ; -----------------------------------------------------------------------------
-pro LS_oplot_graticule, graticule, eul_mat, projection=projection, mollweide=mollweide, gnomic=gnomic, cartesian=cartesian, orthographic=orthographic, flip = flip, _extra = oplot_kw, half_sky=half_sky, coordsys=coordsys, charsize=charsize, reso_rad=reso_rad, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF
+pro LS_oplot_graticule, graticule, eul_mat, projection=projection, mollweide=mollweide, gnomic=gnomic, cartesian=cartesian, orthographic=orthographic, $
+  flip = flip, _extra = oplot_kw, half_sky=half_sky, coordsys=coordsys, charsize=charsize, reso_rad=reso_rad, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF
 ;+
 ; NAME:
 ;       OPLOT_GRATICULE
