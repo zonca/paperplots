@@ -39,7 +39,8 @@
 ;-
 PRO HFI_plot, x, y, _EXTRA=_EXTRA, DECMODX=DECMODX, DECMODY=DECMODY, $
   Y_DX=Y_DX, Y_DY=Y_DY, X_DX=X_DX, X_DY=X_DY, $
-  YTTL_DX=YTTL_DX, YTTL_DY=YTTL_DY, XTTL_DX=XTTL_DX, XTTL_DY=XTTL_DY
+  YTTL_DX=YTTL_DX, YTTL_DY=YTTL_DY, XTTL_DX=XTTL_DX, XTTL_DY=XTTL_DY, $
+  DEBUG=DEBUG, XTICK_GET=XT, YTICK_GET=YT, XLGNAT=XLGNAT, YLGNAT=YLGNAT
 ;
 ; This script is to plot to a virtual device to get the y-axis labels, and allow them to be re-plotted with a 90^o anti-clockwise rotation.
 ; ;
@@ -57,11 +58,56 @@ IF N_ELEMENTS(YTTL_DX) EQ 0 THEN YTTL_DX = 0d
 IF N_ELEMENTS(YTTL_DY) EQ 0 THEN YTTL_DY = 0d
 IF N_ELEMENTS(XTTL_DX) EQ 0 THEN XTTL_DX = 0d
 IF N_ELEMENTS(XTTL_DY) EQ 0 THEN XTTL_DY = 0d
+IF N_ELEMENTS(XLGNAT) EQ 0 THEN XLGNAT = 0
+IF N_ELEMENTS(YLGNAT) EQ 0 THEN YLGNAT = 0
 ; stop ;   
 IF N_ELEMENTS(y) EQ 0 THEN y = DINDGEN(5) + 1d
 Ny = N_ELEMENTS(y)
 IF N_ELEMENTS(x) EQ 0 THEN x = dindgen(Ny)
 ;y = (x + 3);/1d-1
+;
+; check for some alternate names to my keywords:  I shortened XRANGE to XR, XSTYLE to XS, etc.
+_EXTRA_orig = _EXTRA
+;
+IF TAG_EXIST(_EXTRA, 'XRANGE') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'XR', _EXTRA.XRANGE)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'XSTYLE') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'XS', _EXTRA.XSTYLE)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'XSTY') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'XS', _EXTRA.XSTY)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'XST') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'XS', _EXTRA.XST)
+  _EXTRA = temporary(_E)
+ENDIF
+;
+;
+IF TAG_EXIST(_EXTRA, 'YRANGE') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'YR', _EXTRA.YRANGE)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'YSTYLE') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'YS', _EXTRA.YSTYLE)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'YSTY') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'YS', _EXTRA.YSTY)
+  _EXTRA = temporary(_E)
+ENDIF
+IF TAG_EXIST(_EXTRA, 'YST') EQ 1 THEN BEGIN
+  _E = create_struct(_EXTRA, 'YS', _EXTRA.YST)
+  _EXTRA = temporary(_E)
+ENDIF
+;
+;IF TAG_EXIST(_EXTRA, 'YRANGE') EQ 1 THEN _EXTRA = create_struct(temporary(_EXTRA), 'YR', _EXTRA.YRANGE)
+;IF TAG_EXIST(_EXTRA, 'YSTYLE') EQ 1 THEN _EXTRA = create_struct(temporary(_EXTRA), 'YS', _EXTRA.YSTYLE)
+;IF TAG_EXIST(_EXTRA, 'YSTY')   EQ 1 THEN _EXTRA = create_struct(temporary(_EXTRA), 'YS', _EXTRA.YSTY)
+;IF TAG_EXIST(_EXTRA, 'YST')    EQ 1 THEN _EXTRA = create_struct(temporary(_EXTRA), 'YS', _EXTRA.YST)
 ;
 IF TAG_EXIST(_EXTRA, 'YLOG') EQ 1 THEN YLG = _EXTRA.YLOG ELSE YLG = 0
 IF TAG_EXIST(_EXTRA, 'XLOG') EQ 1 THEN XLG = _EXTRA.XLOG ELSE XLG = 0
@@ -85,6 +131,9 @@ YTICKINT = (TAG_EXIST(_EXTRA,'YTICKINTERVAL'))
 ;
 XTCKS = (TAG_EXIST(_EXTRA,'XTICKS'))
 YTCKS = (TAG_EXIST(_EXTRA,'YTICKS'))
+;
+XTKV  = (TAG_EXIST(_EXTRA, 'XTICKV'))
+YTKV  = (TAG_EXIST(_EXTRA, 'YTICKV'))
 ;
 IF YS_ THEN BEGIN
   YS_bin = STRING(_EXTRA.YS, FORMAT='(B0)')
@@ -112,9 +161,13 @@ IF YTICKINT THEN YTINT = _EXTRA.YTICKINTERVAL ELSE YTINT = 0d
 IF YTCKS THEN YTS = _EXTRA.YTICKS ELSE YTS=0
 IF XTCKS THEN XTS = _EXTRA.XTICKS ELSE XTS=0
 ;
+IF YTKV THEN YVS = _EXTRA.YTICKV ELSE YVS=0
+IF XTKV THEN XVS = _EXTRA.XTICKV ELSE XVS=0
+;
 ;stop
 ;
-plot, x, y, YLOG=YLG, XLOG=XLG, /NODATA, /NOERASE, YS=YST, XS=XST, YTICK_GET = YT, CHARSIZE=CHSZ, XTICK_GET=XT, XR=XRN, YR=YRN, XTICKINTERVAL=XTINT, YTICKINTERVAL=YTINT, XTICKS=XTS, YTICKS=YTS
+plot, x, y, YLOG=YLG, XLOG=XLG, /NODATA, /NOERASE, YS=YST, XS=XST, YTICK_GET = YT, CHARSIZE=CHSZ, XTICK_GET=XT, XR=XRN, YR=YRN, $
+  XTICKINTERVAL=XTINT, YTICKINTERVAL=YTINT, XTICKS=XTS, YTICKS=YTS, XTICKV=XVS, YTICKV=YVS
 ; The above will plot no axes, and no lines.  It just gets the ytick values.
 ; , YS=4, XS=4;, YTICKFORMAT='(A1)' ; just to get Y tick values...
 ;
@@ -138,6 +191,14 @@ IF YLG THEN BEGIN
   LS_DecRound, YT_exp, DEC=YT_exp_DEC, STR=YT_exp_str_
 ;  YT_str = '10!U'+STRTRIM(STRING(YT_exp),2)+'!N'
   YT_str = '10!U'+YT_exp_str_+'!N'
+  IF KEYWORD_SET(YLGNAT) THEN BEGIN
+    ;  Do not want the axis labels in 10^n notation.
+    YT_EXP_DEC = CEIL((-1d)*YT_EXP) + DECMODY
+    LS_DecRound, YT, DEC=YT_EXP_DEC, STR=YT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI
+    ;
+    NegYTicks = WHERE(YT LT 0d, Nyneg)
+    IF Nyneg GT 0 THEN YT_STR[NegYTicks] = YT_STR[NegYTicks]+' '
+  ENDIF
 ENDIF ELSE BEGIN
   ; 
   dY = (!Y.crange[1] - !Y.crange[0])/DOUBLE(NumY - 1d)
@@ -160,6 +221,13 @@ IF XLG THEN BEGIN
   XT_exp_DEC = 0 + DECMODX
   LS_DecRound, XT_exp, DEC=XT_exp_DEC, STR=XT_exp_str_
   XT_str = '10!U'+XT_exp_str_+'!N'
+  IF KEYWORD_SET(XLGNAT) THEN BEGIN
+    ;  Do not want the axis labels in 10^n notation.
+    XT_EXP_DEC = CEIL((-1d)*XT_EXP) + DECMODX
+    LS_DecRound, XT, DEC=XT_EXP_DEC, STR=XT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI
+    NegXTicks = WHERE(XT LT 0d, Nxneg)
+    IF Nxneg GT 0 THEN XT_STR[NegXTicks] = XT_STR[NegXTicks]+' '
+  ENDIF
 ENDIF ELSE BEGIN
   ;
   dX = (!X.crange[1] - !X.crange[0])/DOUBLE(NumX - 1d)
@@ -209,15 +277,18 @@ ITERY = 1
 ITERX = 1
 IF YLG THEN BEGIN 
   ;
-  CH_lenY = (CH_lenY - 4d - 2d)*0.62d + 2d
+  ;CH_lenY = (CH_lenY - 4d - 2d)*0.62d + 2d
+  IF KEYWORD_SET(YLGNAT) THEN CH_lenY = CH_lenY ELSE CH_lenY = (CH_lenY - 4d - 2d)*0.62d + 2d
   ;
   ;Dev_to_DataY = (ALOG10(!Y.CRANGE[1]) - ALOG10(!Y.CRANGE[0]))/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   Dev_to_DataY = (!Y.CRANGE[1] - !Y.CRANGE[0])/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   ;
   CH_strtsY = ALOG10(Ytick_Yval) - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d
+  ;CH_strtsY = ALOG10(Ytick_Yval - (CH_lenY)*CH_YSZ*Dev_to_DataY/2d)
   CH_strtsY = 10d^CH_strtsY + Y_DY
   ;
   CH_endsY  = ALOG10(Ytick_Yval) + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d  
+  ;CH_endsY  = ALOG10(Ytick_Yval + (CH_lenY)*CH_YSZ*Dev_to_DataY/2d)
   CH_endsY = 10d^CH_endsY + Y_DY
   ;
 ENDIF ELSE BEGIN
@@ -232,15 +303,18 @@ ENDELSE
 ;
 IF XLG THEN BEGIN 
   ;
-  CH_lenX = (CH_lenX - 4d - 2d)*0.62d + 2d
+  ;CH_lenX = (CH_lenX - 4d - 2d)*0.62d + 2d
+  IF KEYWORD_SET(XLGNAT) THEN CH_lenX = CH_lenX ELSE CH_lenX = (CH_lenX - 4d - 2d)*0.62d + 2d
   ;
   ;Dev_to_DataX = (ALOG10(!X.CRANGE[1]) - ALOG10(!X.CRANGE[0]))/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   Dev_to_DataX = (!X.CRANGE[1] - !X.CRANGE[0])/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   ;
   CH_strtsX = ALOG10(Xtick_Xval) - CH_lenX*CH_XSZ*Dev_to_DataX/2d
+  ;CH_strtsX = ALOG10(Xtick_Xval - CH_lenX*CH_XSZ*Dev_to_DataX/2d)
   CH_strtsX = 10d^CH_strtsX + X_DX
   ;
   CH_endsX  = ALOG10(Xtick_Xval) + CH_lenX*CH_XSZ*Dev_to_DataX/2d  
+  ;CH_endsX  = ALOG10(Xtick_Xval + CH_lenX*CH_XSZ*Dev_to_DataX/2d)
   CH_endsX  = 10d^CH_endsX + X_DX
   ; 
 ENDIF ELSE BEGIN
@@ -294,10 +368,12 @@ IF CH_endsX[NumX - 1] GT XBOX[1] THEN CH_strtsX_ = CH_strtsX_[0:N_ELEMENTS(CH_st
 ;
 ;stop
 ;
-Xtick_Yval = Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d   ; Need to subtract one character as xyouts takes the bottom of the letter location.
-IF YLG THEN Xtick_Yval = 10d^Xtick_Yval
-Ytick_Xval = Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d  ; It is the coords for the bottom of the characters
-IF XLG THEN Ytick_Xval = 10d^Ytick_Xval
+;Xtick_Yval = Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d   ; Need to subtract one character as xyouts takes the bottom of the letter location.
+IF YLG THEN Xtick_Yval = 10d^(Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d) ELSE Xtick_Yval = Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d   ; Need to subtract one character as xyouts takes the bottom of the letter location.
+;IF YLG THEN Xtick_Yval = 10d^(Xtick_Yval - CH_YSZ*Dev_to_DataY*1.5d) ELSE
+;Ytick_Xval = Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d  ; It is the coords for the bottom of the characters
+IF XLG THEN Ytick_Xval = 10d^(Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d) ELSE Ytick_Xval = Ytick_Xval - CH_YSZ*Dev_to_DataX*0.5d  ; It is the coords for the bottom of the characters
+;IF XLG THEN Ytick_Xval = 10d^Ytick_Xval
 ;
 ; Check to see if there is overlap between the first x and first y labels
 IF (Ytick_Xval + Y_DX)[0] GT (CH_strtsX_)[0] THEN BEGIN  ; the first y axis tick label may be printed over the first x axis tick label
@@ -336,6 +412,17 @@ IF YLG THEN xttl_y = 10d^(!Y.CRANGE[0])*10d^((-1d)*CH_YSZ*Dev_to_DataY*2.75d) EL
 IF TAG_EXIST(_EXTRA,'XTITLE') THEN xyouts, xttl_x + xttl_dx, xttl_y + xttl_dy, ALIGNMENT=0.5, /DATA, _EXTRA.XTITLE, _EXTRA=_EXTRA
 IF TAG_EXIST(_EXTRA,'YTITLE') THEN xyouts, yttl_x + yttl_dx, yttl_y + yttl_dy, ALIGNMENT=0.5, ORIENTATION=90d, /DATA, _EXTRA.YTITLE, _EXTRA=_EXTRA
 ;
+IF KEYWORD_SET(DEBUG) THEN BEGIN
+  print, '    '
+  print, 'YTICKS were supposed to be printed at x=', YTICK_XVAL[0],' and y=',YTICK_YVAL
+  print, 'The Y ticks were supposed to be :', YT_STR
+  IF TAG_EXIST(_EXTRA,'YTITLE') THEN print, 'YTITLE of "',_EXTRA.YTITLE,'" was supposed to be printed at x=',yttl_x + yttl_dx,' and y=',yttl_y + yttl_dy
+  print, '    '
+  print, 'XTICKS were supposed to be printed at x=', XTICK_XVAL,' and y=',XTICK_YVAL[0]
+  print, 'The X ticks were supposed to be :', XT_STR
+  IF TAG_EXIST(_EXTRA,'XTITLE') THEN print, 'XTITLE of "',_EXTRA.XTITLE,'" was supposed to be printed at x=',xttl_x + xttl_dx,' and y=',xttl_y + xttl_dy
+  print, '     '
+ENDIF
 ;stop
 ;
 ;CLP = !P.CLIP
@@ -997,9 +1084,12 @@ END
 ; 
 ;-
 pro LS_latexify, filename, tag, tex, scale, outname=outname, $
-      height=height, width=width, full=full, FDIR=FDIR, POSN=POSN, PSPOSN=PSPOSN
+      height=height, width=width, full=full, FDIR=FDIR, POSN=POSN, PSPOSN=PSPOSN, EXWID=EXWID, EXHGT=EXHGT, ALTEPS=ALTEPS, KEEPPS=KEEPPS
   ;
   ;IF N_ELEMENTS(POSN) EQ 0 THEN
+  ;
+  IF N_ELEMENTS(EXWID) EQ 0 THEN EXWID = 0.1d  ;  cm
+  IF N_ELEMENTS(EXHGT) EQ 0 THEN EXHGT = 0.1d  ;  cm
   ;
   if ~keyword_set(scale) then scale=replicate(1, n_elements(tag))
   scale = strcompress(string(scale), /remove_all)
@@ -1008,14 +1098,17 @@ pro LS_latexify, filename, tag, tex, scale, outname=outname, $
     outname='LS_HFIfig2.eps'
     noname=1
   endif
+  ;
+  IF KEYWORD_SET(KEEPPS) THEN PSname = (STRSPLIT(outname,'.eps',/REGEX, /EXTRACT))[0]+'.ps'
+  ;
   openw, lun, FDIR+'LS_HFIfig_temp.tex', /get_lun
   printf, lun, '\documentclass{article}'
   printf, lun, '\usepackage{geometry, graphicx, psfrag}'
   printf, lun, '\renewcommand{\familydefault}{\sfdefault}'
   printf, lun,'\usepackage{helvet}'
   printf, lun,'\pagestyle{empty}'
-  printf, lun,'\geometry{paperwidth='+strcompress(string(width+0.1), /remove_all)+'cm,'+$
-                      'paperheight='+strcompress(string(height+0.1), /remove_all)+'cm,margin=0pt}'
+  printf, lun,'\geometry{paperwidth='+strcompress(string(width+EXWID), /remove_all)+'cm,'+$
+                      'paperheight='+strcompress(string(height+EXHGT), /remove_all)+'cm,margin=0pt}'
   printf, lun,'\begin{document}'
   for i=0, n_elements(tag)-1 do $
         printf, lun,'\psfrag{'+tag[i]+'}[cc][cc]['+scale[i]+']{'+tex[i]+'}'
@@ -1027,20 +1120,30 @@ pro LS_latexify, filename, tag, tex, scale, outname=outname, $
   ;
   spawn, 'cd '+FDIR+' && latex '+'LS_HFIfig_temp.tex', msg0
   spawn, 'cd '+FDIR+' && dvips -o '+'LS_HFIfig_temp.ps '+'LS_HFIfig_temp.dvi', msg1
-  spawn, 'cd '+FDIR+' && ps2epsi '+'LS_HFIfig_temp.ps '+'LS_HFIfig_temp.epsi', msg2
+  IF KEYWORD_SET(ALTEPS) THEN BEGIN
+    spawn, 'cd '+FDIR+' && ./ps2eps.pl -g -l '+'LS_HFIfig_temp.ps ', msg2
+    spawn, 'mv '+FDIR+'LS_HFIfig_temp.eps '+FDIR+outname, msg25 
+  ENDIF ELSE BEGIN
+    spawn, 'cd '+FDIR+' && ps2epsi '+'LS_HFIfig_temp.ps '+'LS_HFIfig_temp.epsi', msg2
+    ;
+    ; Check to see if the file *.eps file already exists, if so rename the old one so the perl script will work.
+    ; 
+    flCheck = file_test(FDIR+outname)
+    IF flCheck THEN spawn, 'cd '+FDIR+' && mv -f '+outname+' old_'+outname, msg3
+    ;
+    ;spawn, " && perl -ne 'print unless /^%%BeginPreview/../^%%EndPreview/' <"+FDIR+'LS_HFIfig_temp.epsi > '+FDIR+outname, msg4
+    spawn, " perl -ne 'print unless /^%%BeginPreview/../^%%EndPreview/' <"+FDIR+'LS_HFIfig_temp.epsi > '+FDIR+outname, msg4
+    ;
+  ENDELSE
   ;
-  ; Check to see if the file *.eps file already exists, if so rename the old one so the perl script will work.
-  ; 
-  flCheck = file_test(FDIR+outname)
-  IF flCheck THEN spawn, 'cd '+FDIR+' && mv -f '+outname+' old_'+outname, msg3
-  ;
-  ;spawn, " && perl -ne 'print unless /^%%BeginPreview/../^%%EndPreview/' <"+FDIR+'LS_HFIfig_temp.epsi > '+FDIR+outname, msg4
-  spawn, " perl -ne 'print unless /^%%BeginPreview/../^%%EndPreview/' <"+FDIR+'LS_HFIfig_temp.epsi > '+FDIR+outname, msg4
+  IF KEYWORD_SET(KEEPPS) THEN BEGIN
+    spawn, 'mv '+FDIR+'LS_HFIfig_temp.ps '+FDIR+psname
+  ENDIF
   ;
   ; Clean up the temporary files now.
   ;
   if keyword_set(noname) then begin
-    spawn, 'mv LS_HFIfig2.eps '+filename
+    spawn, 'mv '+FDIR+'LS_HFIfig2.eps '+FDIR+filename
     outname=filename
   endif
   ;stop
@@ -1611,7 +1714,8 @@ end
 ;  For more information about HEALPix see http://healpix.jpl.nasa.gov
 ;
 ; -----------------------------------------------------------------------------
-pro LS_oplot_graticule, graticule, eul_mat, projection=projection, mollweide=mollweide, gnomic=gnomic, cartesian=cartesian, orthographic=orthographic, flip = flip, _extra = oplot_kw, half_sky=half_sky, coordsys=coordsys, charsize=charsize, reso_rad=reso_rad, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF
+pro LS_oplot_graticule, graticule, eul_mat, projection=projection, mollweide=mollweide, gnomic=gnomic, cartesian=cartesian, orthographic=orthographic, $
+  flip = flip, _extra = oplot_kw, half_sky=half_sky, coordsys=coordsys, charsize=charsize, reso_rad=reso_rad, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF
 ;+
 ; NAME:
 ;       OPLOT_GRATICULE
