@@ -254,8 +254,8 @@ ENDIF ELSE BEGIN
 ENDELSE
 ;
 ;
-OlapY = CH_strtsY[1:NumY - 1] - CH_endsY[0:NumY - 2]
-OlapX = CH_strtsX[1:NumX - 1] - CH_endsX[0:NumX - 2]
+IF NumY GT 1 THEN OlapY = CH_strtsY[1:NumY - 1] - CH_endsY[0:NumY - 2] ELSE OlapY = 1d
+If NumX GT 1 THEN OlapX = CH_strtsX[1:NumX - 1] - CH_endsX[0:NumX - 2] ELSE OlapX = 1d
 ;
 NegOlapY = WHERE(OlapY LE 0d, NnegOlapY)
 NegOlapX = WHERE(OlapX LE 0d, NnegOlapX)
@@ -1233,7 +1233,7 @@ END
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;============================================================
-pro HFI_CT,ascii=ascii,plotlum=plotlum,verbose=verbose, CTDIR=CTDIR, CTfile=CTfile, LOAD=LOAD
+pro HFI_CT,ascii=ascii,plotlum=plotlum,verbose=verbose, CTDIR=CTDIR, CTfile=CTfile, LOAD=LOAD, HIGHDR=HIGHDR, HDRFILE=HDRFILE
 ;============================================================
 ; Create the official Planck colour table.
 ; ascii=filename : to output the color table in a file.
@@ -1259,6 +1259,7 @@ CurDir += path_sep()
 
 IF N_ELEMENTS(CTDIR) EQ 0 THEN CTDIR = CurDIR
 IF N_ELEMENTS(CTfile) EQ 0 THEN CTfile = 'colors1.tbl'
+IF N_ELEMENTS(HDRfile) EQ 0 THEN HDRfile = 'rgb_37.idl'
 ;
 ; Check for the file color1.tbl in the current directory.
 ; 
@@ -1347,7 +1348,23 @@ if (keyword_set(verbose)) then begin
    print, 'B final=',B
 endif
 ;stop
-
+IF KEYWORD_SET(HIGHDR) THEN BEGIN
+  ;
+  ;r_ = [REVERSE(r[0:127]),REVERSE(r[128:255])]
+  ;g_ = [REVERSE(g[0:127]),REVERSE(g[128:255])]
+  ;b_ = [REVERSE(b[0:127]),REVERSE(b[128:255])]
+  ;
+  r_orig = r & g_orig = g & b_orig = b
+  ;
+  RESTORE, FILENAME=CTDIR+HDRFILE ; just restored rgb_37 as a [256 x 3] variable
+  r_ = REFORM(rgb_37[*,0])
+  g_ = REFORM(rgb_37[*,1])
+  b_ = REFORM(rgb_37[*,2])
+  ;
+  r = r_ & g = g_ & b = b_
+  ;
+ENDIF
+ 
 modifyct,41,'parchment1',R,G,B, FILE=CTDIR+CTfile
 
 if (keyword_set(plotlum)) then begin
@@ -1396,6 +1413,28 @@ end
 ;
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
 ; -----------------------------------------------------------------------------
 ;
 ;  Copyright (C) 1997-2012  Krzysztof M. Gorski, Eric Hivon, Anthony J. Banday
@@ -1423,7 +1462,156 @@ end
 ;  For more information about HEALPix see http://healpix.jpl.nasa.gov
 ;
 ; -----------------------------------------------------------------------------
-pro LS_oplot_graticule, graticule, eul_mat, projection=projection, mollweide=mollweide, gnomic=gnomic, cartesian=cartesian, orthographic=orthographic, flip = flip, _extra = oplot_kw, half_sky=half_sky, coordsys=coordsys, charsize=charsize, reso_rad=reso_rad, GRMIN=GRMIN, GRMAX=GRMAX
+pro LS_oplot_line_with_label, u, v, linelabel=linelabel, putlabel=putlabel, flush=flush, lines=line_type, _extra = oplot_kw, charsize=charsize, LABROT=LABROT
+
+lensegment = n_elements(u)
+minseglen = 20
+chars = keyword_set(charsize) ? charsize : 0
+do_label =  (keyword_set(putlabel) && size(/tname, linelabel) eq 'STRING' && lensegment gt minseglen && chars gt 0.)
+if (do_label) then begin
+    middle = lensegment* (keyword_set(flush) ? 0.1 : 0.45)
+    ; find out room to leave in line around label
+    chsize = chars*!d.y_ch_size/(!d.y_vsize*!y.s[1]) ; size of character in units of data coordinates
+    labelsize = chsize*strlen(linelabel)
+    blank = long(labelsize/sqrt((u[middle-1]-u[middle+1])^2+(v[middle-1]-v[middle+1])^2))> 0.6
+    ; make sure that label is shorther than line to be labelled
+    if (2*blank lt lensegment) then begin
+                                ; break line under label
+        if ((middle-blank) gt 0) then oplot, u[0:middle-blank], v[0:middle-blank], _extra = oplot_kw, lines=line_type
+        if ((middle+blank) lt (lensegment-1)) then oplot, u[middle+blank:*], v[middle+blank:*], _extra = oplot_kw, lines=line_type
+                                ; put label
+        step = 3
+        dv = v[middle+step]-v[middle-step]
+        du = u[middle+step]-u[middle-step]
+        ;angle = atan(dv/du) * !radeg ; angle in degree
+        angle = atan(dv,du) * !radeg ; angle in degree
+        if (angle lt -89.9) then angle = angle + 180.
+        if (angle gt  89.9) then angle = angle - 180.
+        ; offset label position to be level with line
+        xlab = u[middle] + 0.3*chsize * cos((angle-90.)*!dtor)
+        ylab = v[middle] + 0.3*chsize * sin((angle-90.)*!dtor)
+        IF KEYWORD_SET(LABROT) THEN BEGIN
+          angle = angle + 180d
+          xlab = u[middle] + 0.3*chsize * cos((angle-90.)*!dtor)
+          ylab = v[middle] + 0.3*chsize * sin((angle-90.)*!dtor)
+        ENDIF
+        xyouts, xlab, ylab, linelabel, align=0.5,orientation=angle, noclip=0,charsize=chars
+    endif else begin
+        ; if label too big, drop it and only plot line
+        oplot, u, v, _extra = oplot_kw, lines=line_type
+    endelse
+endif else begin
+    ; no label, line only
+    oplot, u, v, _extra = oplot_kw, lines=line_type
+endelse
+
+return
+end
+
+;=============================================
+
+pro LS_oplot_sphere, u, v,  line_type=line_type, _extra = oplot_kw, linelabel=linelabel, flush=flush, charsize=charsize, LABROT=LABROT
+
+if undefined(line_type) then line_type = 0
+
+; find points where line should be interrupted (large step in u)
+bad = where(abs(u-shift(u,1)) gt .1, nbad)
+
+iw = index_word(tag_names(oplot_kw),'PSYM',err=errword)
+if errword eq 0 then begin
+    if (oplot_kw.psym gt 0) then nbad = 0
+endif
+
+if (nbad eq 0) then begin
+    if (line_type lt 0) then begin
+        oplot, u, v, _extra = oplot_kw, col=1 ; white background
+        oplot, u, v, _extra = oplot_kw, col=0, lines=abs(line_type)
+    endif else begin
+        LS_oplot_line_with_label, u, v, linelabel=linelabel, _extra = oplot_kw, lines=line_type, putlabel=1,flush=flush,charsize=charsize, LABROT=LABROT
+    endelse
+endif else begin
+;    bad = [0,bad,n_elements(u)-1]
+    bad = [0,bad,n_elements(u)]
+    already = 0
+    for j=0,nbad do begin
+        lensegment = bad[j+1] - bad[j]
+        if (lensegment gt 1) then begin
+            u1 = u[bad[j]:bad[j+1]-1]
+            v1 = v[bad[j]:bad[j+1]-1]
+            if (line_type lt 0) then begin
+                oplot, u1, v1, _extra = oplot_kw, col=1 ; white background
+                oplot, u1, v1, _extra = oplot_kw, col=0, lines=abs(line_type)
+            endif else begin
+                putlabel = (~already)
+                LS_oplot_line_with_label, u1, v1, linelabel=linelabel, _extra = oplot_kw, lines=line_type, putlabel=putlabel, flush=flush, charsize=charsize, LABROT=LABROT
+                already = 1
+            endelse        
+        endif
+    endfor
+endelse
+
+
+
+
+return
+end
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; -----------------------------------------------------------------------------
+;
+;  Copyright (C) 1997-2012  Krzysztof M. Gorski, Eric Hivon, Anthony J. Banday
+;
+;
+;
+;
+;
+;  This file is part of HEALPix.
+;
+;  HEALPix is free software; you can redistribute it and/or modify
+;  it under the terms of the GNU General Public License as published by
+;  the Free Software Foundation; either version 2 of the License, or
+;  (at your option) any later version.
+;
+;  HEALPix is distributed in the hope that it will be useful,
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;  GNU General Public License for more details.
+;
+;  You should have received a copy of the GNU General Public License
+;  along with HEALPix; if not, write to the Free Software
+;  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+;
+;  For more information about HEALPix see http://healpix.jpl.nasa.gov
+;
+; -----------------------------------------------------------------------------
+pro LS_oplot_graticule, graticule, eul_mat, projection=projection, mollweide=mollweide, gnomic=gnomic, cartesian=cartesian, orthographic=orthographic, flip = flip, _extra = oplot_kw, half_sky=half_sky, coordsys=coordsys, charsize=charsize, reso_rad=reso_rad, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF
 ;+
 ; NAME:
 ;       OPLOT_GRATICULE
@@ -1566,27 +1754,39 @@ end
 1: begin  ; mollweide : deal with boundaries
     for jg=0,1 do begin
         for i = bounds[0,jg],bounds[1,jg] do begin
+            LABROT = 0
             if (jg eq 0) then begin
                 mylong = i*dlong ; longitude in Deg
                 IF N_ELEMENTS(GRMIN) GT 0 THEN BEGIN
-                   IF mylong LT GRMIN[0] THEN linelabel = '' ELSE linelabel = strtrim(string(mylong,form=form),2);+'!Xo'
-                   IF N_ELEMENTS(GRMAX) GT 0 THEN IF mylong GT GRMAX[0] THEN linelabel = ''
+                   linelabel = strtrim(string(mylong,form=form),2);+'!Xo'
+                   IF KEYWORD_SET(LATLONGDIFF) THEN linelabel = linelabel+'_l'
+                   IF mylong LT GRMIN[0] THEN linelabel = ''
+                   IF N_ELEMENTS(GRMAX) GT 0 THEN BEGIN
+                     IF mylong GE GRMAX[0] THEN linelabel = ''
+                   ENDIF
                 ENDIF ELSE BEGIN
                    linelabel = strtrim(string(mylong,form=form),2);+'!Xo'
+                   IF KEYWORD_SET(LATLONGDIFF) THEN linelabel = linelabel+'_l'
                    IF N_ELEMENTS(GRMAX) GT 0 THEN BEGIN
-                     IF mylong GT GRMAX[0] THEN linelabel = ''
+                     IF mylong GE GRMAX[0] THEN linelabel = ''
                    ENDIF ; ELSE linelabel = strtrim(string(mylong,form=form),2)
                 ENDELSE
                 ;linelabel = strtrim(string(mylong,form=form),2)
                 ang2vec, vector*!pi,        replicate(mylong*!DtoR,nv), vv ; meridians
+                IF (ABS(mylong) LT 0.1d) THEN LABROT = 1
             endif
             if (jg eq 1) then begin
                 mylat = i*dlat ; latitude in Deg
                 IF N_ELEMENTS(GRMIN) GT 0 THEN BEGIN
-                   IF mylat LT GRMIN[1] THEN linelabel = '' ELSE linelabel = strtrim(string(mylat,form=form),2);+'!Xo'
-                   IF N_ELEMENTS(GRMAX) GT 0 THEN IF mylat GT GRMAX[1] THEN linelabel = ''
+                   linelabel = strtrim(string(mylat,form=form),2);+'!Xo'
+                   IF KEYWORD_SET(LATLONGDIFF) THEN linelabel = linelabel+'_b'
+                   IF mylat LT GRMIN[1] THEN linelabel = ''
+                   IF N_ELEMENTS(GRMAX) GT 0 THEN BEGIN
+                     IF mylat GT GRMAX[1] THEN linelabel = ''
+                   ENDIF
                 ENDIF ELSE BEGIN
                    linelabel = '!X'+strtrim(string(mylat,form=form),2);+'!Xo'
+                   IF KEYWORD_SET(LATLONGDIFF) THEN linelabel = linelabel+'_b'
                    IF N_ELEMENTS(GRMAX) GT 0 THEN BEGIN
                      IF mylat GT GRMAX[1] THEN linelabel = ''
                    ENDIF ; ELSE linelabel = strtrim(string(mylat,form=form),2)
@@ -1599,8 +1799,8 @@ end
 
             vec2moll, vv, u, v
             ;oplot_sphere, -flipconv * u, v, _extra = oplot_kw, linelabel=linelabel, charsize=charsize
-            device, /HELVETICA, FONT_size=8
-            oplot_sphere,  u, v, _extra = oplot_kw, linelabel=linelabel, charsize=charsize;, /FLUSH
+            IF !D.name EQ 'PS' THEN device, /HELVETICA, FONT_size=8
+            LS_oplot_sphere,  u, v, _extra = oplot_kw, linelabel=linelabel, charsize=charsize, LABROT=LABROT;, /FLUSH
 ;;            oplot_sphere, flipconv * u, v, _extra = oplot_kw
         endfor
     endfor
@@ -1801,7 +2001,9 @@ pro LS_proj2out, planmap, Tmax, Tmin, color_bar, dx, title_display, sunits, $
               TRANSPARENT = transparent, EXECUTE=execute, SILENT=silent, GLSIZE=glsize, IGLSIZE=iglsize, $
               SHADEMAP=SHADEMAP, RETAIN=retain, TRUECOLORS=truecolors, CHARTHICK=charthick, $
               STAGGER=stagger, AZEQ=azeq, JPEG=jpeg, $
-              CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, CBLBL=CBLBL
+              CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
+              CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
+              MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF
 
 ;===============================================================================
 ;+
@@ -1976,17 +2178,19 @@ if (projtype eq 1) then begin
     umin = - du_dv * fudge & umax = du_dv * fudge
     vmin = - fudge         & vmax =         fudge
 ; position of the egg in the final window
+    ;w_xll = 0.0 & w_xur = 1.0 & w_dx = w_xur - w_xll
+    ;w_yll = 0.1 & w_yur = 0.9 & w_dy = w_yur - w_yll
     w_xll = 0.0 & w_xur = 1.0 & w_dx = w_xur - w_xll
-    w_yll = 0.1 & w_yur = 0.9 & w_dy = w_yur - w_yll
+    w_yll = 0.15 & w_yur = 0.95 & w_dy = w_yur - w_yll
     w_dx_dy = w_dx / w_dy       ; 1./.8
 ; color bar, position, dimension
     ;cbar_dx = 1./3.
     ;cbar_dy = 1./70.
-    cbar_dx = 2./3.
-    cbar_dy = 1./32.
+    cbar_dx = 4./5. ; 2./3.
+    cbar_dy = 1./24. ; 32.
     cbar_xll = (1. - cbar_dx)/2.
     cbar_xur = (1. + cbar_dx)/2.
-    cbar_yur = w_yll - cbar_dy
+    cbar_yur = w_yll - cbar_dy*1.5d
     cbar_yll = cbar_yur - cbar_dy
 ; polarisation color ring, position, dimension
     cring_dx = 1./10.
@@ -2441,40 +2645,313 @@ if (do_polvector) then begin
 endif
 
 ;  the color bar
-if (~(keyword_set(nobar) || do_poldirection || do_true)) then begin
-    color_bar_out = BYTE(CONGRID(color_bar,xsize*cbar_dx)) # REPLICATE(1.,(ysize*cbar_dy*w_dx_dy)>1)
-    back(xsize*cbar_xll,0) = color_bar_out
-    TV, back,0,cbar_yll,/normal,xsize = 1.
-endif
-
+cb_orig = color_bar
+Ncb = N_ELEMENTS(color_bar)
+cbran = MINMAX(color_bar)
+lincb = DINDGEN(Ncb)/DOUBLE(Ncb - 1d)*(cbran[1] - cbran[0]) + cbran[0]
+;      
+IF KEYWORD_SET(CBLIN) THEN BEGIN
+  if (~(keyword_set(nobar) || do_poldirection || do_true)) then begin
+      color_bar = lincb
+      ;
+      color_bar_out = BYTE(CONGRID(color_bar,xsize*cbar_dx)) # REPLICATE(1.,(ysize*cbar_dy*w_dx_dy)>1)
+      back(xsize*cbar_xll,0) = color_bar_out
+      TV, back,0,cbar_yll,/normal,xsize = 1.
+  endif
+ENDIF ELSE BEGIN  ; keep the healpix default colourbar output
+  if (~(keyword_set(nobar) || do_poldirection || do_true)) then begin
+      color_bar_out = BYTE(CONGRID(color_bar,xsize*cbar_dx)) # REPLICATE(1.,(ysize*cbar_dy*w_dx_dy)>1)
+      back(xsize*cbar_xll,0) = color_bar_out
+      TV, back,0,cbar_yll,/normal,xsize = 1.
+  endif
+ENDELSE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;  This code gets a translation from the temperature/data coordinates to the normalized colourbar/x coordinates.
+;
+cb_Ts_ = DINDGEN(Ncb)/DOUBLE(Ncb - 1d)*(TMAX - TMIN) + TMIN
+cb_Y_ = DOUBLE(cb_orig - MIN(cb_orig))/MAX(cb_orig - MIN(cb_orig))*2d - 1d ; from -1 to 1 is the default
+cb_Ts = DINDGEN(Ncb*1d3)/DOUBLE(Ncb*1d3 - 1d)*(TMAX - TMIN) + TMIN
+cb_Y = INTERPOL(cb_Y_, cb_Ts_, cb_Ts, /SPLINE) ; interpolate onto a higher resolution grid 
+IF KEYWORD_SET(MODASINH) THEN cb_Y  = MODASINH(cb_Ts)
+IF KEYWORD_SET(ASINH) THEN cb_Y  = ASINH(cb_Ts)
+IF KEYWORD_SET(HIST_EQUAL) THEN BEGIN
+  cb_Y = (cb_Y + 1d)/2d
+  ;Bs = (Tmax-Tmin)/5000. ;MIN( [(Tmax-Tmin)/5000.,2.] )
+  ;      Phist = HISTOGRAM( data, Min=Tmin, Max=Tmax, Bin = Bs )
+  ;      Phist = total(Phist,/cumul)
+  ;      Phist[0] = 0.
+  ;      Junk = INTERPOLATE( FLOAT(Phist), (data-Tmin)/Bs )
+  ;
+ENDIF
+; rescale the cb_Y to the color bar width, I can then interpolate from data values to relative colorbar location.
+cbYmm = MINMAX(cb_Y)
+cbYneg = WHERE(cb_Y LT 0d, Nneg)
+cbYpos = WHERE(cb_Y GE 0d, Npos)
+;
+cbar_Xmid = (cbar_xur + cbar_xll)/2d
+cb_Y = (cb_Y - cbYmm[0])/(cbYmm[1] - cbYmm[0])*(cbar_xur - cbar_xll) + (cbar_xll) ; should now translate data units to colorbar x position
+;IF Nneg GT 0 THEN cb_Y[cbYneg] = cb_Y[cbYneg]*(cbar_xll - cbar_Xmid)/cbYmm[0]
+;IF Npos GT 0 THEN cb_Y[cbYpos] = cb_Y[cbYpos]*(cbar_xur - cbar_Xmid)/cbYmm[1]
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;stop
+;
+;  Outline the colourbar if desired
+;
+IF KEYWORD_SET(CBOUT) THEN plots, THICK=2, COLOR=0, [cbar_xll,cbar_xll,cbar_xur,cbar_xur,cbar_xll],[cbar_yll,cbar_yur, cbar_yur, cbar_yll,cbar_yll], /NORMAL
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
 ;  the color bar labels
-if (~(keyword_set(nobar) || keyword_set(nolabels) || do_true || do_poldirection)) then begin
-    format = '(g10.2)'
-    if ((Tmax - Tmin) ge 50 and MAX(ABS([Tmax,Tmin])) le 1.e5) then format='(i8)'
-    if ((Tmax - Tmin) ge 5  and MAX(ABS([Tmax,Tmin])) le 1.e2) then format='(f6.1)'
-    strmin = STRING(Tmin,format=format)
-    strmax = STRING(Tmax,format=format)
-    ;XYOUTS, cbar_xll, cbar_yll,'!6'+STRTRIM(strmin,2)+' ',$
-    ;        ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
-    ;XYOUTS, cbar_xur, cbar_yll,'!6 '+STRTRIM(strmax,2)+' '+sunits,$
-    ;        ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
-    ;  LSedit to get colorbar label to work with latex/ psfrag
-    IF KEYWORD_SET(CBLBL) THEN BEGIN
-      XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
-            ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
-      XYOUTS, cbar_xur, cbar_yll,' '+STRTRIM(strmax,2)+' '+sunits,$
-            ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
-      XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE), CBLBL, $
-            ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
-    ENDIF ELSE BEGIN
-      XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
-            ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
-      XYOUTS, cbar_xur, cbar_yll,'!X '+STRTRIM(strmax,2)+' '+sunits,$
-            ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
-      ;XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy*2d, sunits, $
-      ;      ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
-    ENDELSE    
-endif
+IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals was requested
+  ; plot a linear colourbar even though the map scale is not linear.
+  ;  the color bar labels
+  if (~(keyword_set(nobar) || keyword_set(nolabels) || do_true || do_poldirection)) then begin
+      format = '(g10.2)'
+      if ((Tmax - Tmin) ge 50 and MAX(ABS([Tmax,Tmin])) le 1.e5) then format='(i8)'
+      if ((Tmax - Tmin) ge 5  and MAX(ABS([Tmax,Tmin])) le 1.e2) then format='(f6.1)'
+      strmin = STRING(Tmin,format=format)
+      strmax = STRING(Tmax,format=format)
+      ;
+      ;  Decide how many orders of magnitude are spanned in the colourbar
+      ;  
+      Tran = [Tmin,Tmax]
+      Texp = FLOOR(ALOG10(ABS(Tran)))
+      ;
+      cb_Lys = [cbar_yll,cbar_yur] ; the y range for colorbar ticks
+      ;
+      ;  A few cases for the colorbar lines, if CBTICKVAL is set (dead easy), if linear, logarithmic, ASINH/MODASINH, or histogram (not sure what to do for this one).
+      ;
+      IF KEYWORD_SET(CBTICKVAL) THEN BEGIN
+        ;
+        ;  I have the tick values, do I have labels for them?
+        IF KEYWORD_SET(CBTICKLBL) THEN BEGIN
+          ;
+          ; Have both, this is straightforward
+          cb_Tmajors = CBTICKVAL
+          cb_Tstr    = CBTICKLBL
+          ;
+        ENDIF ELSE BEGIN
+          ;
+          ;  I have the values, but not the labels for them
+          cb_Tmajors = CBTICKVAL
+          cb_Tstr = STRING(CB_Tmajors, format=format)
+          ;
+        ENDELSE
+        ;
+      ENDIF ELSE BEGIN
+        ;
+        ;  A few cases here to consider, one is just a simple linear scale, perhaps leave this for the CBTICKS=0 setting, imply linear values...
+        ;
+        IF ((KEYWORD_SET(MODASINH)) OR (KEYWORD_SET(ASINH))) THEN BEGIN
+        ;  Do the positive colourbar lines
+        ;
+        IF Npos GT 0 THEN BEGIN
+          cb_PosLineTminors = 0d  
+          cb_PosLineTmajors = 0d
+          cb_PosTstr = ' 0 '
+          ;
+          FOR ii = 0, Texp[1] - 1 DO cb_PosLineTminors = [cb_PosLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)]  
+          FOR ii = 0, Texp[1]     DO cb_PosLineTmajors = [cb_PosLineTmajors,10d^DOUBLE(ii)]
+          FOR ii = 0, Texp[1]     DO cb_PosTstr = [cb_PosTstr,' 10!U'+STRTRIM(STRING(ii),2)+'!N']
+          ;
+          Npos_ = N_ELEMENTS(cb_PosTstr)
+          IF Npos_ GT 1 THEN cb_PosTstr[1] = '  1'
+          IF Npos_ GT 2 THEN cb_PosTstr[2] = '10'
+          ;
+          IF Tmin GT 0d THEN BEGIN
+            ;
+            Npos_min = N_ELEMENTS(cb_PosLineTminors)
+            Npos_maj = N_ELEMENTS(cb_PosLineTmajors)
+            IF Npos_min GT 1 THEN cb_PosLineTminors = cb_PosLineTminors[1:*]  ; get rid of zero entry as it is not within the plot range
+            IF Npos_maj GT 1 THEN cb_PosLineTmajors = cb_PosLineTmajors[1:*]
+            IF Npos_maj GT 1 THEN cb_PosTstr = cb_PosTstr[1:*]
+            ;
+          ENDIF 
+          ;
+          cb_Tminors = cb_PosLineTminors
+          cb_Tmajors = cb_PosLineTmajors
+          cb_Tstr = cb_PosTstr
+          ;
+        ENDIF
+        ;
+        ;  Do the negative color_bar lines, if any
+        ;  
+        IF Nneg GT 0 THEN BEGIN
+          cb_NegLineTminors = 0d  
+          cb_NegLineTmajors = 0d
+          cb_NegTstr = '-1  '
+          ;
+          FOR ii = 0, Texp[0] - 1 DO cb_NegLineTminors = [cb_NegLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)*(-1d)]  
+          FOR ii = 0, Texp[0]     DO cb_NegLineTmajors = [cb_NegLineTmajors,10d^DOUBLE(ii)*(-1d)]
+          FOR ii = 0, Texp[0]     DO cb_NegTstr = [cb_NegTstr,'-10!U'+STRTRIM(STRING(ii),2)+'!N ']
+          ;
+          Nneg_min = N_ELEMENTS(cb_NegLineTminors)
+          Nneg_maj = N_ELEMENTS(cb_NegLineTmajors)
+          IF Nneg_min GT 1 THEN cb_NegLineTminors = cb_NegLineTminors[1:*]  ; get rid of zero entry as it will be included in positive side (if at all)
+          IF Nneg_maj GT 1 THEN cb_NegLineTmajors = cb_NegLineTmajors[1:*]
+          IF Nneg_maj GT 1 THEN cb_NegTstr = cb_NegTstr[1:*]
+          ;
+          Nneg_ = N_ELEMENTS(cb_NegLineTmajors)
+          IF Nneg_ GT 0 THEN cb_NegTstr[0] = '-1   '
+          IF Nneg_ GT 1 THEN cb_NegTstr[1] = '-10 '
+          ;
+          cb_NegLineTminors = REVERSE(cb_NegLineTminors)
+          cb_NegLineTmajors = REVERSE(cb_NegLineTmajors)
+          cb_NegTstr = REVERSE(cb_NegTstr)
+          ;
+          cb_Tminors = [cb_NegLineTminors, cb_PosLineTminors]
+          cb_Tmajors = [cb_NegLineTmajors, cb_PosLineTmajors]
+          cb_Tstr = [cb_NegTstr, cb_PosTstr]
+          ;
+        ENDIF
+        ;
+        ENDIF ELSE BEGIN ; the CB ticks for the modasinh and asinh color scalings are done above, do the linear case below
+          ;
+          IF KEYWORD_SET(HIST_EQUAL) THEN BEGIN
+            ;
+            ;  The code below is wrong, I need to fix this.
+            ;Nticks = 3
+            ;cb_ymarks = MINMAX(CB_Y)
+            ;cb_Ymarks = [cb_ymarks[0], 0.5d, cb_ymarks[1]]
+            ;cb_Tmajors = INTERPOL(cb_Ts, cb_Y, cb_Ymarks)
+            ;cb_Tmajors[0] = Tmin
+            ;cb_Tmajors[2] = Tmax
+            ;;cb_Tmajors = DINDGEN(Nticks)/DOUBLE(Nticks - 1d)*(Tmax - Tmin) + Tmin
+            ;cb_Tstr = STRING(CB_Tmajors, format=format)
+            ;cb_Tstr = STRTRIM(cb_Tstr,2)
+            ;negT = WHERE(cb_Tmajors LT 0d, NnegT)
+            ;IF NnegT GT 0 THEN cb_Tstr[negT] = cb_Tstr[negT]+' '
+            ;
+            cb_Tmajors = [Tmin, Tmax]
+            cb_Tstr = STRING(CB_Tmajors, format=format)
+            cb_Tstr = STRTRIM(cb_Tstr,2)
+            negT = WHERE(cb_Tmajors LT 0d, NnegT)
+            IF NnegT GT 0 THEN cb_Tstr[negT] = cb_Tstr[negT]+' '
+            ;
+          ENDIF ELSE BEGIN  ; linear or log scaling now.  
+            ;  
+            ;  Assume 5 ticks, linearly spaced.
+            Nticks = 5
+            cb_Tmajors = DINDGEN(Nticks)/DOUBLE(Nticks - 1d)*(Tmax - Tmin) + Tmin
+            cb_Tstr = STRING(CB_Tmajors, format=format)
+            cb_Tstr = STRTRIM(cb_Tstr,2)
+            negT = WHERE(cb_Tmajors LT 0d, NnegT)
+            IF NnegT GT 0 THEN cb_Tstr[negT] = cb_Tstr[negT]+' '
+            ;
+            ZeroFind = WHERE(cb_Tmajors EQ 0d, Nzero)
+            IF Nzero GT 0 THEN cb_Tstr[ZeroFind] = ' '+cb_Tstr[ZeroFind]+' '
+            ;
+          ENDELSE
+          ;
+        ENDELSE 
+      ENDELSE  ; I now have cb_Tmajors, cb_Tstr, and possibly cb_Tminors
+      ;
+      ;  Check the range of the majors against the Tmin and Tmax values
+      ;
+      N_minor = N_ELEMENTS(cb_Tminors)
+      ;
+      IF N_minor GT 0 THEN BEGIN
+        GoodcbTs = WHERE(((cb_Tminors GE Tmin) AND (cb_Tminors LE Tmax)),NgoodcbTs)
+        IF NgoodcbTs GT 0 THEN BEGIN
+          cb_Tminors = cb_Tminors[GoodcbTs]
+        ENDIF
+        cb_TYminors = INTERPOL(cb_Y, cb_Ts, cb_Tminors)
+      ENDIF
+      ;  
+      GoodcbTs = WHERE(((cb_Tmajors GE Tmin) AND (cb_Tmajors LE Tmax)),NgoodcbTs)
+      IF NgoodcbTs GT 0 THEN BEGIN
+        cb_Tmajors = cb_Tmajors[GoodcbTs]
+        cb_Tstr    = cb_Tstr[GoodcbTs]
+      ENDIF
+      ;
+      IF MIN(cb_Tmajors) GT Tmin THEN BEGIN  ; I may not want to do this due to formatting issues.
+        cb_Tmajors = [Tmin,cb_Tmajors]
+        cb_Tstr = [strmin,cb_Tstr]
+      ENDIF
+      ;
+      IF MAX(cb_Tmajors) LT Tmax THEN BEGIN  ; I may not want to do this due to formatting issues.
+        cb_Tmajors = [cb_Tmajors,Tmax]
+        cb_Tstr = [cb_Tstr,strmax]
+      ENDIF
+      ;
+      cb_TYmajors = INTERPOL(cb_Y, cb_Ts, cb_Tmajors)
+      ;
+      ;  Now print them on the plot
+      N_minor = N_ELEMENTS(cb_Tminors)
+      N_major = N_ELEMENTS(cb_Tmajors)
+      ;
+      IF N_minor GT 0 THEN FOR ii = 0, N_minor - 1 DO plots, THICK=1, COLOR=0, (cb_TYminors)[[ii,ii]], cb_Lys, /NORMAL  ;
+      IF N_major GT 0 THEN FOR ii = 0, N_major - 1 DO plots, THICK=2, COLOR=0, (cb_TYmajors)[[ii,ii]], cb_Lys, /NORMAL  ;
+        ;
+        ;XYOUTS, cbar_xll, cbar_yll,'!6'+STRTRIM(strmin,2)+' ',$
+        ;        ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+        ;XYOUTS, cbar_xur, cbar_yll,'!6 '+STRTRIM(strmax,2)+' '+sunits,$
+        ;        ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+        ;  LSedit to get colorbar label to work with latex/ psfrag
+      IF KEYWORD_SET(CBTICKLAB) THEN BEGIN  ; also add the tick labels to the colourbar on the plot
+        ;
+        IF N_major GT 0 THEN BEGIN
+          FOR ii = 0, N_major - 1 DO BEGIN
+            XYOUTS, CHARTHICK=mycharthick, ALIGN=0.5, /NORMAL, chars=1.3*charsfactor, COLOR=0, $
+              cb_TYmajors[ii], cbar_yur + (cbar_dy/2d)*0.6d, cb_Tstr[ii] ; - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE)
+          ENDFOR
+        ENDIF
+        IF KEYWORD_SET(CBLBL) THEN BEGIN  ; there is a unit label
+          XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE), CBLBL, $
+                ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
+        ENDIF
+        ;
+      ENDIF ELSE BEGIN ; only label the end points.
+        ;
+        IF KEYWORD_SET(CBLBL) THEN BEGIN  ; there is a unit label
+          XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE), CBLBL, $
+                ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
+          XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
+                ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+          XYOUTS, cbar_xur, cbar_yll,' '+STRTRIM(strmax,2)+' ',$
+                ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+        ENDIF ELSE BEGIN                   ;  there is not a unit label
+          XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
+                ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+          XYOUTS, cbar_xur, cbar_yll,' '+STRTRIM(strmax,2)+' '+sunits,$
+                ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+        ENDELSE
+      ENDELSE
+  endif
+ENDIF ELSE BEGIN  ; just plot the edge values, do not place ticks on the colorbar
+  if (~(keyword_set(nobar) || keyword_set(nolabels) || do_true || do_poldirection)) then begin
+      format = '(g10.2)'
+      if ((Tmax - Tmin) ge 50 and MAX(ABS([Tmax,Tmin])) le 1.e5) then format='(i8)'
+      if ((Tmax - Tmin) ge 5  and MAX(ABS([Tmax,Tmin])) le 1.e2) then format='(f6.1)'
+      strmin = STRING(Tmin,format=format)
+      strmax = STRING(Tmax,format=format)
+      ;XYOUTS, cbar_xll, cbar_yll,'!6'+STRTRIM(strmin,2)+' ',$
+      ;        ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+      ;XYOUTS, cbar_xur, cbar_yll,'!6 '+STRTRIM(strmax,2)+' '+sunits,$
+      ;        ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+      ;  LSedit to get colorbar label to work with latex/ psfrag
+      IF KEYWORD_SET(CBLBL) THEN BEGIN
+        XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
+              ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+        XYOUTS, cbar_xur, cbar_yll,' '+STRTRIM(strmax,2)+' ',$
+              ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+        XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE), CBLBL, $
+              ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
+      ENDIF ELSE BEGIN
+        XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
+              ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+        XYOUTS, cbar_xur, cbar_yll,'!X '+STRTRIM(strmax,2)+' '+sunits,$
+              ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
+        ;XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy*2d, sunits, $
+        ;      ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
+      ENDELSE    
+  endif
+ENDELSE
+
+;ENDELSE
 
 ; the polarisation vector scale
 if (~keyword_set(nobar)  && do_polvector) then begin
@@ -2534,20 +3011,22 @@ endif else begin
         grattwice =1
         glabelsize = charsfactor * (keyword_set(glsize) ? glsize : 0 )
         ;stop
-        LS_oplot_graticule, graticule, eul_mat, projection=proj_small, flip = flip, thick = 1.*thick_dev, color = !p.color, half_sky=half_sky, linestyle=GRLS, charsize=glabelsize, reso_rad=dx, GRMIN=GRMIN, GRMAX=GRMAX
+        LS_oplot_graticule, graticule, eul_mat, projection=proj_small, flip = flip, thick = 1.*thick_dev, color = !p.color, $
+          half_sky=half_sky, linestyle=GRLS, charsize=glabelsize, reso_rad=dx, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF
     endif 
 
 ;  the graticule in input coordinates
     if (KEYWORD_SET(igraticule)) then begin
         lines_ig = 2*grattwice  ; either 0 or 2
         iglabelsize = charsfactor * (keyword_set(iglsize) ? iglsize : 0 )
-        LS_oplot_graticule, igraticule, eul_mat, projection=proj_small, flip = flip, thick = 1.*thick_dev, color = !p.color, half_sky=half_sky, linestyle=IGRLS, coordsys=[coord_in,coord_out], charsize=iglabelsize, reso_rad=dx, GRMIN=IGRMIN, GRMAX=IGRMAX
+        LS_oplot_graticule, igraticule, eul_mat, projection=proj_small, flip = flip, thick = 1.*thick_dev, color = !p.color, $
+          half_sky=half_sky, linestyle=IGRLS, coordsys=[coord_in,coord_out], charsize=iglabelsize, reso_rad=dx, GRMIN=IGRMIN, GRMAX=IGRMAX, LATLONGDIFF=LATLONGDIFF
     endif 
 
 ; outlines on the map
     if (keyword_set(outline)) then begin
         for iol=0, n_elements(outline)-1 do begin
-            outline_coord2uv, outline[iol], coord_out, eul_mat, projection=proj_small, flip = flip, /show, thick = 3.*thick_dev, half_sky=half_sky
+            outline_coord2uv, outline[iol], coord_out, eul_mat, projection=proj_small, flip = flip, /show, thick = 1.5*thick_dev, half_sky=half_sky
         endfor
     endif
 
@@ -2802,7 +3281,9 @@ pro LS_mollview, file_in, select_in, $
               XPOS = xpos, $
               YPOS = ypos, $
               CTDIR=CTDIR, $
-              CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, CBLBL=CBLBL
+              CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, MODASINH=MODASINH, $
+              CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
+              LATLONGDIFF=LATLONGDIFF
 
 ;+
 ; NAME:
@@ -3340,13 +3821,13 @@ loaddata_healpix, $
   TRUECOLORS=truecolors, DATA_TC=data_tc
 if error NE 0 then return
 
-data2moll, $
+LS_data2moll, $
   data, pol_data, pix_type, pix_param, do_conv, do_rot, coord_in, coord_out, eul_mat, $
   planmap, Tmax, Tmin, color_bar, planvec, vector_scale, $
   PXSIZE=pxsize, LOG=log, HIST_EQUAL=hist_equal, MAX=max_set, MIN=min_set, FLIP=flip,  $
   NO_DIPOLE=no_dipole, NO_MONOPOLE=no_monopole, UNITS=sunits, DATA_plot = data_plot, GAL_CUT=gal_cut, $
   POLARIZATION=polarization, SILENT=silent, PIXEL_LIST=pixel_list, ASINH=asinh, $
-  TRUECOLORS=truecolors, DATA_TC=data_tc, MAP_OUT = map_out, ROT=rot, FITS=fits
+  TRUECOLORS=truecolors, DATA_TC=data_tc, MAP_OUT = map_out, ROT=rot, FITS=fits, MODASINH=MODASINH
 
 LS_proj2out, $
   planmap, Tmax, Tmin, color_bar, 0., title_display, $
@@ -3357,13 +3838,623 @@ LS_proj2out, $
   POLARIZATION=polarization, OUTLINE=outline, /MOLL, FLIP=flip, COORD_IN=coord_in, IGRATICULE=igraticule, $
   HBOUND = hbound, WINDOW = window, EXECUTE=execute, SILENT=silent, GLSIZE=glsize, $
   IGLSIZE=iglsize, RETAIN=retain, TRUECOLORS=truecolors, TRANSPARENT=transparent, CHARTHICK=charthick, $
-  JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, CBLBL=CBLBL
-
+  JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
+  CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
+  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF
 
 w_num = !d.window
 ; restore original color table and PLOTS settings
 record_original_settings, original_settings, /restore
 
+return
+end
+; -----------------------------------------------------------------------------
+;
+;  Copyright (C) 1997-2012  Krzysztof M. Gorski, Eric Hivon, Anthony J. Banday
+;
+;
+;
+;
+;
+;  This file is part of HEALPix.
+;
+;  HEALPix is free software; you can redistribute it and/or modify
+;  it under the terms of the GNU General Public License as published by
+;  the Free Software Foundation; either version 2 of the License, or
+;  (at your option) any later version.
+;
+;  HEALPix is distributed in the hope that it will be useful,
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;  GNU General Public License for more details.
+;
+;  You should have received a copy of the GNU General Public License
+;  along with HEALPix; if not, write to the Free Software
+;  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+;
+;  For more information about HEALPix see http://healpix.jpl.nasa.gov
+;
+; -----------------------------------------------------------------------------
+pro LS_data2moll, data, pol_data, pix_type, pix_param, do_conv, do_rot, coord_in, coord_out, eul_mat, $
+               planmap, Tmax, Tmin, color_bar, planvec, vector_scale, $
+               PXSIZE=pxsize, LOG=log, HIST_EQUAL=hist_equal, MAX=max_set, MIN=min_set, FLIP=flip,$
+               NO_DIPOLE=no_dipole, NO_MONOPOLE=no_monopole, UNITS = units, DATA_PLOT = data_plot, $
+               GAL_CUT=gal_cut, POLARIZATION=polarization, SILENT=silent, PIXEL_LIST=pixel_list, ASINH=asinh, $
+               TRUECOLORS=truecolors, DATA_TC=data_tc, MAP_OUT = map_out, ROT=rot_ang, FITS=fits, MODASINH=MODASINH
+;+
+;==============================================================================================
+;     DATA2MOLL
+;
+;     turns a Healpix or Quad-cube map into in Mollweide egg
+;
+;     DATA2MOLL,  data, pol_data, pix_type, pix_param, do_conv, do_rot, coord_in,
+;                     coord_out, eul_mat
+;          planmap, Tmax, Tmin, color_bar, planvec, vector_scale,
+;          pxsize=, log=, hist_equal=, max=, min=, flip=, no_dipole=,
+;          no_monopole=, units=, data_plot=, gal_cut=, polarization=, silent=,
+;          pixel_list=, asinh=, truecolors=, data_tc=, map_out=, rot= , fits=
+;
+; IN :
+;      data, pol_data, pix_type, pix_param, do_conv, do_rot, coord_in,
+;      coord_out, eul_mat, rot
+; OUT :
+;      planmap, Tmax, Tmin, color_bar, planvec, vector_scale, map_out
+; KEYWORDS
+;      pxsize, log, hist_equal, max, min, flip, no_dipole, no_monopole, units,
+;      polarization
+;
+;  called by mollview
+;
+;  HISTORY
+; Sep 2007: added /silent
+; April 2008: added pixel_list
+; July 2008: added asinh
+; May 2009: can deal with maps without any valid pixel
+; April 2010: added Map_Out
+; Feb. 2013 changed to LS_data2moll to add the modified ASINH colour option (via modasinh keyword).
+;==============================================================================================
+;-
+
+do_true = keyword_set(truecolors)
+truetype = do_true ? truecolors : 0
+du_dv = 2.    ; aspect ratio
+fudge = 1.02  ; spare some space around the Mollweide egg
+if keyword_set(flip) then flipconv=1 else flipconv = -1  ; longitude increase leftward by default (astro convention)
+if undefined(polarization) then polarization=0
+do_polamplitude = (polarization[0] eq 1)
+do_poldirection = (polarization[0] eq 2)
+do_polvector    = (polarization[0] eq 3)
+do_map_out      = arg_present(map_out)
+do_fits         = keyword_set(fits)
+
+
+!P.BACKGROUND = 1               ; white background
+!P.COLOR = 0                    ; black foreground
+
+mode_col = keyword_set(hist_equal)
+mode_col = mode_col + 2*keyword_set(log) + 4*keyword_set(asinh) + 8*keyword_set(modasinh)
+
+sz = size(data)
+obs_npix = sz[1]
+bad_data= !healpix.bad_value
+
+if (do_poldirection or do_polvector) then begin
+    ; compute new position of pixelisation North Pole in the plot coordinates
+    north_pole = [0.,0.,1.]
+    if (do_conv) then north_pole = SKYCONV(north_pole, inco= coord_in, outco=coord_out)
+    if (do_rot) then north_pole = north_pole # transpose(eul_mat)
+endif
+;-----------------------------------
+; mask out some data
+;-----------------------------------
+;--------------------------------------
+; remove monopole and/or dipole (for temperature, not polarisation)
+;----------------------------------------
+if not (do_poldirection or do_polamplitude) then begin
+    if undefined(gal_cut) then bcut = 0. else bcut = abs(gal_cut)
+    if keyword_set(no_dipole) then remove_dipole, data, $
+      nside=pix_param, ordering=pix_type, units=units, coord_in = coord_in, coord_out=coord_out, $
+      bad_data=bad_data, gal_cut=bcut, pixel=pixel_list
+    if keyword_set(no_monopole) then remove_dipole, data, $
+      nside=pix_param, ordering=pix_type, units=units, coord_in = coord_in, coord_out=coord_out, $
+      bad_data=bad_data, gal_cut=bcut,/only, pixel=pixel_list
+endif
+; -------------------------------------------------------------
+; create the rectangular window
+; -------------------------------------------------------------
+if DEFINED(pxsize) then xsize= LONG(pxsize>200) else xsize = 800L
+ysize = xsize/2L
+zsize = (do_true) ? 3 : 1
+n_uv = xsize*ysize
+indlist = (n_elements(pixel_list) eq obs_npix)
+small_file = (n_uv GT obs_npix)  && ~do_map_out &&~do_fits
+;small_file = ((n_uv GT npix)  and not do_poldirection)
+
+if (small_file) then begin
+    ; file smaller than final map, make costly operation on the file
+    ; initial data is destroyed and replaced by color
+    if (do_poldirection or do_polvector) then begin
+        phi = 0.
+        if (do_rot or do_conv) then begin
+            ; position of each map pixel after rotation and coordinate changes
+            id_pix = lindgen(obs_npix)
+            case pix_type of
+                'R' : PIX2VEC_RING, pix_param, id_pix, vector ; Healpix ring
+                'N' : PIX2VEC_NEST, pix_param, id_pix, vector; Healpix nest
+                'Q' : vector = PIX2UV(pix_param, id_pix) ; QuadCube (COBE cgis software)
+                else : print,'error on pix_type'
+            endcase
+            id_pix = 0
+            if (do_conv) then vector = SKYCONV(vector, inco= coord_in, outco=coord_out)
+            if (do_rot) then vector = vector # transpose(eul_mat)
+            ; compute rotation of local coordinates around each vector
+            tmp_sin = north_pole[1] * vector[*,0] - north_pole[0] * vector[*,1]
+            tmp_cos = north_pole[2] - vector[*,2] * (north_pole[0:2] ## vector)
+            if (flipconv lt 0) then tmp_cos = flipconv * tmp_cos
+            phi = ATAN(tmp_sin, tmp_cos) ; angle in radians
+            tmp_sin = 0. & tmp_cos = 0 & vector = 0.
+        endif
+        data_plot = data
+        if (do_poldirection) then begin
+            data = (data - phi + 4*!PI) MOD (2*!PI) ; angle
+            min_set = 0. & max_set = 2*!pi
+        endif
+        if (do_polvector) then begin
+            pol_data[*,1] = (pol_data[*,1] - phi + 4*!PI) MOD (2*!PI) ; angle is rotated
+        endif
+    endif else begin ; temperature only or polarisation amplitude only
+        data_plot = data
+    endelse
+    ; color observed pixels
+    if (do_true) then begin
+        if (truetype eq 2) then begin
+            for i=0,2 do begin
+                find_min_max_valid, data_tc[*,i], mindata, maxdata, valid=Obs, bad_data = 0.9 * bad_data
+                data_tc[0,i] = LS_COLOR_MAP(data_tc[*,i], mindata, maxdata, Obs, $
+                                    color_bar = color_bar, mode=mode_col, silent=silent )
+            endfor
+        endif else begin
+            find_min_max_valid, data_tc, mindata, maxdata, valid=Obs, bad_data = 0.9 * bad_data
+            data_tc = LS_COLOR_MAP(data_tc, mindata, maxdata, Obs, $
+                                color_bar = color_bar, mode=mode_col, $
+                                minset = min_set, maxset = max_set, silent=silent )
+        endelse
+    endif else begin
+        find_min_max_valid, data[*,0], mindata, maxdata, valid=Obs, bad_data= 0.9 * bad_data
+        data = LS_COLOR_MAP(data, mindata, maxdata, Obs, $
+                         color_bar = color_bar, mode=mode_col, $
+                         minset = min_set, maxset = max_set, silent=silent )
+    endelse
+    if (do_polvector) then begin ; rescale polarisation vector in each valid pixel
+        pol_data[0,0] = vector_map(pol_data[*,0], Obs, vector_scale = vector_scale)
+    endif
+    if defined(Obs) then Obs = 0
+    Tmin = mindata & Tmax = maxdata
+    planmap = MAKE_ARRAY(/BYTE, xsize, ysize, zsize, Value = !P.BACKGROUND) ; white
+endif else begin ; large file
+    planmap = MAKE_ARRAY(/FLOAT, xsize, ysize, zsize, Value = bad_data) 
+    plan_off = 0L
+endelse
+if do_polvector then planvec = MAKE_ARRAY(/FLOAT,xsize,ysize, 2, Value = bad_data) 
+
+; -------------------------------------------------
+; make the projection
+;  we split the projection to avoid dealing with to big an array
+; -------------------------------------------------
+if (~keyword_set(silent)) then print,'... making the projection ...'
+; -------------------------------------------------
+; generate the (u,v) position on the mollweide map
+; -------------------------------------------------
+xll= 0 & xur =  xsize-1
+yll= 0 & yur =  ysize-1
+xc = 0.5*(xll+xur) & dx = (xur - xc)
+yc = 0.5*(yll+yur) & dy = (yur - yc)
+
+
+yband = LONG(5.e5 / FLOAT(xsize))
+for ystart = 0, ysize - 1, yband do begin 
+    yend   = (ystart + yband - 1) < (ysize - 1)
+    nband = yend - ystart + 1
+    u = FINDGEN(xsize)     # REPLICATE(1,nband)
+    v = REPLICATE(1,xsize) # (FINDGEN(nband) + ystart)
+    u =  du_dv*(u - xc)/(dx/fudge)   ; in [-2,2]*fudge
+    v =        (v - yc)/(dy/fudge)   ; in [-1,1] * fudge
+
+    ; -------------------------------------------------------------
+    ; for each point on the mollweide map 
+    ; looks for the corresponding position vector on the sphere
+    ; -------------------------------------------------------------
+    ellipse  = WHERE( (u^2/4. + v^2) LE 1. , nellipse)
+    if (~small_file) then begin
+        off_ellipse = WHERE( (u^2/4. + v^2) GT 1. , noff_ell)
+        if (noff_ell NE 0) then plan_off = [plan_off, ystart*xsize+off_ellipse]
+    endif
+    if (nellipse gt 0) then begin
+        u1 =  u(ellipse)
+        v1 =  v(ellipse)
+        u = 0 & v = 0
+        s1 =  SQRT( (1-v1)*(1+v1) )
+        a1 =  ASIN(v1)
+
+        z = 2./!PI * ( a1 + v1*s1)
+        phi = (flipconv *!Pi/2.) * u1/s1 ; lon in [-pi,pi], the minus sign is here to fit astro convention
+        sz = SQRT( (1. - z)*(1. + z) )
+        vector = [[sz * COS(phi)], [sz * SIN(phi)], [z]]
+        u1 = 0 & v1 = 0 & s1 = 0 & a1 = 0 & z = 0 & phi = 0 & sz = 0
+        ; --------------------------------
+        ; deal with polarisation direction
+        ; --------------------------------
+        if ((do_poldirection || do_polvector) && ~small_file) then begin
+            phi = 0.
+            if (do_rot or do_conv) then begin
+                ; compute rotation of local coordinates around each vector
+                tmp_sin = north_pole[1] * vector[*,0] - north_pole[0] * vector[*,1]
+                tmp_cos = north_pole[2] - vector[*,2] * (north_pole[0:2] ## vector)
+                if (flipconv lt 0) then tmp_cos = flipconv * tmp_cos
+                phi = ATAN(tmp_sin, tmp_cos) ; angle in radians
+                tmp_sin = 0. & tmp_cos = 0
+            endif
+        endif
+        ; ---------
+        ; rotation
+        ; ---------
+        if (do_rot) then vector = vector # eul_mat
+        if (do_conv) then vector = SKYCONV(vector, inco = coord_out, outco =  coord_in)
+                                ; we go from the final Mollweide map (system coord_out) to
+                                ; the original one (system coord_in)
+        ; -------------------------------------------------------------
+        ; converts the position on the sphere into pixel number
+        ; and project the corresponding data value on the map
+        ; -------------------------------------------------------------
+        case pix_type of
+            'R' : VEC2PIX_RING, pix_param, vector, id_pix ; Healpix ring
+            'N' : VEC2PIX_NEST, pix_param, vector, id_pix ; Healpix nest
+            'Q' : id_pix = UV2PIX(vector, pix_param)    ; QuadCube (COBE cgis software)
+            else : print,'error on pix_type'
+        endcase
+        if (small_file) then begin ; (data and data_pol are already rescaled and color coded)
+            if (do_true) then begin
+                for i=0,zsize-1 do planmap[(ystart*xsize+i*n_uv)+ellipse] = data_tc[id_pix,i]
+            endif else begin
+                if (~ (do_polvector || do_polamplitude || do_poldirection) ) then begin
+                    planmap[ystart*xsize+ellipse] = sample_sparse_array(data,id_pix,in_pix=pixel_list,default=2B) ; temperature
+                endif else begin
+                    planmap[ystart*xsize+ellipse] = data[id_pix]
+                endelse
+                if (do_polvector) then begin
+                    planvec[ystart*xsize+ellipse]         = pol_data[id_pix,0] ; amplitude
+                    planvec[(ystart*xsize+n_uv)+ellipse]  = pol_data[id_pix,1] ; direction
+                endif
+            endelse
+        endif else begin ; (large file : do the projection first)
+            if (do_true) then begin
+                for i=0,zsize-1 do planmap[(ystart*xsize+i*n_uv)+ellipse] = data_tc[id_pix,i]
+            endif else begin
+                if (do_poldirection) then begin
+                    planmap[ystart*xsize+ellipse] = (data[id_pix] - phi + 4*!PI) MOD (2*!PI) ; in 0,2pi
+                endif else if (do_polvector) then begin
+                    planmap[ystart*xsize+ellipse]         = data[id_pix] ; temperature
+                    planvec[ystart*xsize+ellipse]         = pol_data[id_pix,0] ; amplitude
+                    planvec[(ystart*xsize+n_uv)+ellipse]  = (pol_data[id_pix,1] - phi + 4*!PI) MOD (2*!PI) ; angle
+                endif else begin ; temperature only or amplitude only
+                                ;planmap[ystart*xsize+ellipse]         = data[id_pix] ; temperature
+                    planmap[ystart*xsize+ellipse]         = sample_sparse_array(data,id_pix,in_pix=pixel_list,default=!healpix.bad_value) ; temperature
+                endelse
+            endelse
+        endelse
+    endif
+    ellipse = 0 & id_pix = 0
+endfor
+
+
+;-----------------------------------
+; export in FITS and as an array the original mollweide map before alteration
+;----------------------------------------------
+
+; planmap -> IDL array
+if (do_map_out) then map_out = proj2map_out(planmap, offmap=plan_off, bad_data=bad_data)
+
+; planmap -> FITS file
+if keyword_set(fits) then begin 
+    reso_arcmin = 60.d0 * 360.d0/(xsize-1) * fudge
+    reso_arcmin *=  sqrt(8.d0) / !dpi ; WCS convention, ellipse surface is 4Pi
+    proj2fits, planmap, fits, $
+               projection = 'MOLL', flip=flip, $
+               rot = rot_ang, coord=coord_out, reso = reso_arcmin, unit = sunits, min=mindata, max = maxdata
+endif
+
+
+
+if (small_file) then begin
+    data = 0 & pol_data = 0
+endif else begin
+; file larger than final map, make
+; costly coloring operation on the Mollweide map
+    data_plot = temporary(data)
+    pol_data = 0
+    if (do_poldirection) then begin
+        min_set = 0.
+        max_set = 2*!pi
+    endif
+    find_min_max_valid, planmap, mindata, maxdata, valid= Obs, bad_data = 0.9 * bad_data
+    case truetype of
+        2: begin
+                                ; truecolors=2 map each field to its color independently
+            color = bytarr(xsize, ysize, zsize)
+            for i=0,zsize-1 do begin
+                find_min_max_valid, planmap[*,*,i], mindata, maxdata, valid=Obs, bad_data = 0.9 * bad_data
+                color[0,0,i] = LS_COLOR_MAP(planmap[*,*,i], mindata, maxdata, Obs, $
+                                         color_bar = color_bar, mode=mode_col, silent=silent)
+            endfor
+            planmap = color
+        end
+        3: begin
+            intensity = total(planmap,3)/3.
+            find_min_max_valid, intensity, mindata, maxdata, valid= Obs, bad_data = 0.1 * bad_data
+            bint = LS_COLOR_MAP(intensity, mindata, maxdata, Obs, $
+                                color_bar = color_bar, mode=mode_col, $
+                                minset = min_set, maxset = max_set, silent=silent)
+;             for i=0,2 do begin
+;                 ioff = i*xsize*ysize
+;                 color[Obs+ioff] = 3B + bytscl((planmap[Obs+ioff]>0)/intensity[Obs] * bint[Obs], min=0,top=252)
+;             endfor
+            ioff = xsize * ysize
+            mat = planmap[[[Obs], [Obs+ioff], [Obs+2*ioff]]] > 0
+            mat2 = (bint[Obs]/intensity[Obs]) # [1,1,1]
+            color = 3B + bytscl(mat*mat2, min=0, top=252)
+            planmap = MAKE_ARRAY(/BYTE, xsize, ysize, 3, Value = 2B)
+            for i=0,2 do planmap[Obs + i*ioff] = color[*,i]
+            
+        end
+        else: begin
+                                ; same for truecolors=1 and false colors:
+            planmap = LS_COLOR_MAP(planmap, mindata, maxdata, Obs, $
+                                color_bar = color_bar, mode=mode_col, $
+                                minset = min_set, maxset = max_set, silent=silent)
+        end
+    endcase
+    for i=0,zsize-1 do planmap[plan_off+i*n_uv] = !p.background ; white
+    if (do_polvector) then begin ; rescale polarisation vector in each valid pixel
+        planvec[*,*,0] = vector_map(planvec[*,*,0], Obs, vector_scale = vector_scale)
+        planvec[plan_off] = -1
+    endif
+    Obs = 0 & plan_off = 0
+    Tmin = mindata & Tmax = maxdata
+endelse
+
 
 return
 end
+;
+;
+;
+;
+;
+; -----------------------------------------------------------------------------
+;
+;  Copyright (C) 1997-2012  Krzysztof M. Gorski, Eric Hivon, Anthony J. Banday
+;
+;
+;
+;
+;
+;  This file is part of HEALPix.
+;
+;  HEALPix is free software; you can redistribute it and/or modify
+;  it under the terms of the GNU General Public License as published by
+;  the Free Software Foundation; either version 2 of the License, or
+;  (at your option) any later version.
+;
+;  HEALPix is distributed in the hope that it will be useful,
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;  GNU General Public License for more details.
+;
+;  You should have received a copy of the GNU General Public License
+;  along with HEALPix; if not, write to the Free Software
+;  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+;
+;  For more information about HEALPix see http://healpix.jpl.nasa.gov
+;
+; -----------------------------------------------------------------------------
+function LS_color_map, data, mindata, maxdata, Obs, $
+                    color_bar = color_bar, mode = mode, minset = min_set, maxset = max_set, silent = silent
+;+
+; color_map
+;
+; color = color_map( data, mindata, maxdata, Obs=obs, color_bar =
+; color_bar, mode = mode)
+;
+;
+; INPUT
+;    data : input data
+;    mindata : min (can be changed by the routine)
+;    maxdata : maxdata (can be changed by the routine)
+;
+;  Obs : list of valid pixels
+;  if Obs is not defined, all pixels are assumed valid
+;
+; mode    0: nothing
+;         1: histogram equalized
+;         2: log
+;         4: asinh
+; asin can not be used together with log nor hist_eq
+;
+;
+;
+; Sep 2007: added /silent
+; July 2008: added Asinh mode
+; Oct 2008: make sure that MIN and MAX are properly taken into account in Asinh
+; mode
+; 2009-04-30: make sure that MINSET and MAXSET are taken into account in Log mode
+; 2013-02-27: added the ability to provide the MODASINH colour scheme, and changed name to LS_color_map accordingly.
+;-
+
+if undefined (mode) then mode = 0
+do_hist  = (mode and 1)
+do_log   = (mode and 2)/2
+do_asinh = (mode and 4)/4
+do_modasinh = (mode and 8)/8
+if (do_asinh && (do_log || do_hist)) then begin
+    message,'Asinh mode can NOT be used together with Log or Hist mode'
+endif
+if (do_modasinh && (do_log || do_hist)) then begin
+    message,'ModAsinh mode can NOT be used together with Log or Hist mode'
+endif
+
+N_Color = !D.n_colors < 256
+
+sz = size(data)
+npix = n_elements(data)
+Color = MAKE_ARRAY(/BYTE, npix, Value = 2B)
+color_bar = [2B]
+if (sz(0) eq 2) then Color = reform(color,/over,sz(1),sz(2))
+if (sz(0) eq 3) then Color = reform(color,/over,sz(1),sz(2),sz(3))
+if defined(Obs) then begin
+    if Obs[0] eq -1 then return, color
+    N_obs = n_elements(Obs)
+    N_no_Obs = npix - N_obs
+endif else begin
+    ;Obs = lindgen(npix)
+    N_obs = npix
+    N_no_obs = 0
+endelse
+
+; -------------------------------------------------------------
+; sets MIN and MAX
+; -------------------------------------------------------------
+if (~keyword_set(silent)) then print,'plotted area original MIN and MAX: ',mindata, maxdata
+IF DEFINED(min_set) THEN BEGIN
+    if (min_set gt mindata) then begin
+        IF (N_No_Obs eq 0) THEN data = data > min_set ELSE data(Obs)=data(Obs) > min_set
+    endif
+    mindata = min_set
+    if (~keyword_set(silent)) then print,'new MIN : ',mindata
+ENDIF
+
+IF DEFINED(max_set) THEN BEGIN
+    if (max_set lt maxdata) then begin
+        IF (N_No_Obs eq 0) THEN data = data < max_set ELSE data(Obs)=data(Obs) < max_set
+    endif
+    maxdata = max_set
+    if (~keyword_set(silent)) then print,'new MAX : ',maxdata
+ENDIF
+
+IF (do_log) THEN BEGIN
+;   log
+    if (N_No_Obs eq 0) then begin
+;         data      = ALOG10(data + (0.0001 -mindata))
+        data = Alog10(data > 1.e-6*abs(maxdata))
+        mindata = MIN(data,MAX=maxdata)
+    endif else begin 
+;         data[Obs] = ALOG10(data[Obs] + (0.0001 -mindata))
+        data[Obs] = ALOG10(data[Obs] > 1.e-6*abs(maxdata))
+        mindata = MIN(data[Obs],MAX=maxdata)
+    endelse
+    ; use user-defined range if provided
+    if defined(min_set) then begin
+        if (min_set gt 0) then mindata = alog10(min_set)
+    endif
+    if defined(max_set) then begin
+        if (max_set gt 0) then maxdata = alog10(max_set)
+    endif
+ENDIF
+
+; IF (do_asinh) THEN BEGIN
+; ;   Asinh
+;     if (N_No_Obs eq 0) then begin
+;         data = asinh(data)
+;         mindata = MIN(data,MAX=maxdata)
+;     endif else begin 
+;         data[Obs] = asinh(data[Obs])
+;         mindata = MIN(data[Obs],MAX=maxdata)
+;     endelse
+; ENDIF
+
+
+; turn data into colors (in the range [3,N_color-1])
+col_scl = FINDGEN(N_Color-3)/(N_Color-4)
+
+if (do_hist) then begin
+;   histogram equalised scaling
+    Tmax = maxdata & Tmin = mindata
+    Bs = (Tmax-Tmin)/5000. ;MIN( [(Tmax-Tmin)/5000.,2.] )
+    if (N_No_Obs eq 0) then begin
+        Phist = HISTOGRAM( data, Min=Tmin, Max=Tmax, Bin = Bs )
+        Phist = total(Phist,/cumul)
+        Phist[0] = 0.
+        Junk = INTERPOLATE( FLOAT(Phist), (data-Tmin)/Bs )
+        Color = 3B + BYTSCL( Junk, Top=N_Color-4 )
+    endif else begin 
+        Phist = HISTOGRAM( data[Obs], Min=Tmin, Max=Tmax, Bin = Bs )
+        Phist = total(Phist,/cumul)
+        Phist[0] = 0.
+        Junk = INTERPOLATE( FLOAT(Phist), (data[Obs]-Tmin)/Bs )
+        Color[Obs] = 3B + BYTSCL( Junk, Top=N_Color-4 )
+    endelse
+
+    junk2= INTERPOLATE( FLOAT(Phist), col_scl*(Tmax-Tmin)/bs )
+    color_bar = (3B + BYTSCL( junk2, TOP = N_Color-4 ))
+
+endif else begin
+;   linear scaling or Asinh mapping
+    if (do_asinh) then begin
+        Tmax = maxdata*1.0 & Tmin = mindata*1.0
+        if (N_No_Obs eq 0) then begin
+;             Color = 3B + BYTSCL( asinh(data), Top=N_Color-4 )
+            Color = 3B + BYTSCL( asinh(data), MIN=asinh(Tmin), MAX=asinh(Tmax), Top=N_Color-4 )
+        endif else begin 
+;             Color[Obs] = 3B + BYTSCL( asinh(data[Obs]), Top=N_Color-4 )
+            Color[Obs] = 3B + BYTSCL( asinh(data[Obs]), MIN=asinh(Tmin), MAX=asinh(Tmax), Top=N_Color-4 )
+        endelse
+        
+        bs = 5 * N_color
+        junk2= asinh(  dindgen(bs)/(bs-1)*(Tmax-Tmin) + Tmin  )
+        color_bar = (3B + BYTSCL( junk2, TOP = N_Color-4 ))
+
+    endif else begin
+        if (do_modasinh) then begin
+          Tmax = maxdata*1.0 & Tmin = mindata*1.0
+          if (N_No_Obs eq 0) then begin
+;               Color = 3B + BYTSCL( asinh(data), Top=N_Color-4 )
+              Color = 3B + BYTSCL( modasinh(data), MIN=modasinh(Tmin), MAX=modasinh(Tmax), Top=N_Color-4 )
+          endif else begin 
+;               Color[Obs] = 3B + BYTSCL( asinh(data[Obs]), Top=N_Color-4 )
+              Color[Obs] = 3B + BYTSCL( modasinh(data[Obs]), MIN=modasinh(Tmin), MAX=modasinh(Tmax), Top=N_Color-4 )
+          endelse
+          
+          bs = 5 * N_color
+          junk2= modasinh(  dindgen(bs)/(bs-1)*(Tmax-Tmin) + Tmin  )
+          color_bar = (3B + BYTSCL( junk2, TOP = N_Color-4 ))
+        endif else begin
+          
+          if (maxdata ne mindata && $
+              ABS((maxdata+mindata)/FLOAT(maxdata-mindata)) lt 5.e-2) then begin
+;         if Min and Max are symmetric
+;         put data=0 at the center of the color scale
+            Tmax = MAX(ABS([mindata,maxdata]))
+            Tmin = -Tmax
+          endif else begin 
+            Tmax = maxdata & Tmin=mindata
+          endelse
+          if (N_No_Obs eq 0) then begin 
+              color = 3B + BYTSCL(data, MIN=Tmin, MAX=Tmax, Top=N_Color-4 )
+          endif else begin
+              color[Obs] = 3B + BYTSCL(data[Obs], MIN=Tmin, MAX=Tmax, Top=N_Color-4 )
+          endelse
+          color_bar = (3B + BYTSCL( col_scl, TOP = N_Color-4 ))
+        endelse
+    endelse
+endelse 
+
+mindata = Tmin
+maxdata = Tmax
+
+return, color
+end
+;
+FUNCTION MODASINH, X
+  return, ALOG10(0.5d*(X + SQRT(X^2d + 4d)))
+END
+
+
