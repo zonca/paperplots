@@ -48,6 +48,11 @@ PRO HFI_plot, x, y, _EXTRA=_EXTRA, DECMODX=DECMODX, DECMODY=DECMODY, $
 ;  If no keywords are passed then it doesn't like it, so make a structure to use as a placeholder
 IF N_ELEMENTS(_EXTRA) EQ 0 THEN _EXTRA = {HFI:0}
 ;
+IF N_ELEMENTS(y) EQ 0 THEN BEGIN  ;  I think that x was forgotten, generate a new one.
+  x_ = DINDGEN(N_ELEMENTS(x))
+  y = x
+  x = x_
+ENDIF
 IF N_ELEMENTS(DECMODX) EQ 0 THEN DECMODX = 0
 IF N_ELEMENTS(DECMODY) EQ 0 THEN DECMODY = 0
 IF N_ELEMENTS(Y_DX) EQ 0 THEN Y_DX = 0d
