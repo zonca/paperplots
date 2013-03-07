@@ -124,7 +124,7 @@ PRO Freq_Map_fig_example
   ;  I toyed with plotting the 545 and 857 GHz data in K_RJ instead of K_CMB (actually uK_RJ or nK_RJ)  The conversion factors are below
   ;
   sol = 299792458.d0  ; speed of light in m/s
-  kb = 1.3806488e-23   Boltzmann constant in J/K
+  kb = 1.3806488e-23  ; Boltzmann constant in J/K
   ;
   UcTB545 = sol^2d/2d/Kb/545d9^2d*1d-26*1d6  ;  [uK_RJ/(Jy/sr)]
   UcTB857 = sol^2d/2d/Kb/857d9^2d*1d-26*1d6  ;  [uK_RJ/(Jy/sr)]
