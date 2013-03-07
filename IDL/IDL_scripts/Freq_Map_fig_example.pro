@@ -2,7 +2,7 @@ PRO Freq_Map_fig_example
   ;
   ;
   ;
-  ;Written by L.D.Spencer, Jan. 2013
+  ;Written by L.D.Spencer, Mar.  2013
   ;
   ;   This program is free software: you can redistribute it and/or modify
   ;   it under the terms of the GNU General Public License as published by
@@ -28,8 +28,12 @@ PRO Freq_Map_fig_example
   FDIR = '/export/data/spxls/Docs/Planck/PIPfigTemplate/'   ;;;;;;!!!!!!!!  You need to change this to yoru local directory.
   ;FDIR = '/space/lspencer/PIPtmplt/'
   CTDIR = FDIR    ;  The CTDIR needs to be a directory that IDL can read/write to.  
-  CTFILE = 'Planck_CT.tbl'
+  CTFILE = 'Planck_CT.tbl'  ; The HFI_CT script will create this file for you as needed in the specified CTDIR directory
+  ;
   ; It was introduced as non-admin users may not have write access to the default IDL colourtable. 
+  ;
+  HDRDIR = CTDIR            ; This is where the RGB vectors for the high dynamic range (frequency map colour table) are located, default is the same place as the CMB colour table.
+  HDRFILE = 'RGB_Planck_hdr.idl'  ; This is the file containing the high dynamic range RGB vectors.  Put it in the specified HDRDIR folder (change the HDRDIR location as you see fit)
   ;
   Mname = 'wmap_band_iqumap_r9_9yr_W_v5' ; .fits
   ;Mname = 'wmap_band_forered_iqumap_r9_7yr_W_v4' ; .fits     ; the 7 year map
@@ -114,10 +118,16 @@ PRO Freq_Map_fig_example
   map217 = map217 - 133d  ;+ 100d
   map353 = map353 - 681d + 250d
   ;  
+  ;  The above offsets are based purely on making the maps look the same wrt the CMB.  Whatever offsets used in plotting should be clearly stated within a caption or the text.
+  ;  A more complete discussion of map offsets, and official numbers for other data processing are avaialble at http://wiki.planck.fr/index.php/Proc/HFIMonopoleDipole
+  ;  
   ;  I toyed with plotting the 545 and 857 GHz data in K_RJ instead of K_CMB (actually uK_RJ or nK_RJ)  The conversion factors are below
   ;
-  UcTB545 = !C_^2d/2d/!K_/545d9^2d*1d-26*1d6  ;  [uK_RJ/(Jy/sr)]
-  UcTB857 = !C_^2d/2d/!K_/857d9^2d*1d-26*1d6  ;  [uK_RJ/(Jy/sr)]
+  sol = 299792458.d0  ; speed of light in m/s
+  kb = 1.3806488e-23   Boltzmann constant in J/K
+  ;
+  UcTB545 = sol^2d/2d/Kb/545d9^2d*1d-26*1d6  ;  [uK_RJ/(Jy/sr)]
+  UcTB857 = sol^2d/2d/Kb/857d9^2d*1d-26*1d6  ;  [uK_RJ/(Jy/sr)]
   ;  
   ;  
   ;stop
@@ -148,6 +158,7 @@ PRO Freq_Map_fig_example
   ;
   HFI_CT, CTDIR=CTDIR, CTFILE=CTFILE, /LOAD, /HIGHDR, HDRFILE=HDRFILE ; this tells me the location of the revised colour table, file CTFILE in directory CTDIR, 
   ;       these are also inputs if you have a colourtable file already.  The LOAD keyword then loads the colour table after it has been created.
+  ;       The HDRDIR is where the high-dynamic range RGB vectors are stored.  The default location is the CTDIR location.  This file must be manually placed in the correct directory.
   ;
   ;
   ; Make an outline for the lattitude and longitude lines. This is needed to draw an ellipse around the map [if desired]. 
