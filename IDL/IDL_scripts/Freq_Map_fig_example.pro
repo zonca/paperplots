@@ -106,6 +106,24 @@ PRO Freq_Map_fig_example
     ;
   ENDELSE
   ;  
+  ;  
+  ;  Look at using the official HFI offsets (monopole + CIB) [LFI offsets here are the KMG ones included below]
+  ;  
+  ;  A more complete discussion of map offsets, and official numbers for other data processing are avaialble at http://wiki.planck.fr/index.php/Proc/HFIMonopoleDipole
+  ;  The MONOPOLE offsets are subtracted, and the CIB offsets are added.
+  ;
+  ;  After processing, it looks like the offsets for 143, 217, and 353 are a bit off, so I will comment these out and revert back to the KMG ones.
+  ;
+  ;map30 = map30 - 64.7d
+  ;map44 = map44 - 24.1d
+  ;map70 = map70 - 28.5d
+  ;map100 = map100 - 19.7d + 12.3d
+  ;map143 = map143 - 36.9 + 21.3d
+  ;map217 = map217 - 78.6d + 67.6d  
+  ;map353 = map353 - 308.8d + 452.6d
+  ;map545 = map545 - 106.0d3 + 350d3
+  ;map857 = map857 - 145.3d3 + 640d3
+  ;  
   ;  Apply the KMG magic offsets to the maps.
   ;  
   ;  Kris used some offsets to make the plots suitable by visual inspection of the CMB portion.  His offsets are included below to the maps in uK_CMB

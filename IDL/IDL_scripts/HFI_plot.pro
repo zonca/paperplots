@@ -2337,7 +2337,7 @@ pro LS_proj2out, planmap, Tmax, Tmin, color_bar, dx, title_display, sunits, $
               STAGGER=stagger, AZEQ=azeq, JPEG=jpeg, $
               CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-              MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF
+              MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, CBLABOFF=CBLABOFF, GNMCORDOFF=GNMCORDOFF, FNTsz=FNTsz
 
 ;===============================================================================
 ;+
@@ -2413,6 +2413,9 @@ IF N_ELEMENTS(GRLS) EQ 0 THEN GRLS = 0
 IF N_ELEMENTS(IGRLS) EQ 0 THEN BEGIN
   IF KEYWORD_SET(GRATICULE) THEN IGRLS = 1 ELSE IGRLS = 0
 ENDIF
+IF N_ELEMENTS(CBLABOFF) EQ 0 THEN CBLABOFF = 0d
+IF N_ELEMENTS(GNMCORDOFF) EQ 0 THEN GNMCORDOFF = 0d
+IF N_ELEMENTS(FNTsz) EQ 0 THEN FNTsz = 8d
 ;
 identify_projection, projtype, projection=projection, mollweide=mollweide, gnomic=gnomic, cartesian=cartesian, orthographic=orthographic,  diamonds = diamonds, azeq=azeq
 do_gnom = 0
@@ -2460,15 +2463,20 @@ if (projtype eq 2) then begin
     umin = - dx * xc * fudge & umax = dx * xc * fudge
     vmin = - dx * yc * fudge & vmax = dx * yc * fudge
 ; position of the rectangle in the final window
-    w_xll = 0.00 & w_xur = 1.00 & w_dx = w_xur - w_xll
-    w_yll = 0.10 & w_yur = 0.90 & w_dy = w_yur - w_yll
+    ;w_xll = 0.00 & w_xur = 1.00 & w_dx = w_xur - w_xll
+    ;w_yll = 0.10 & w_yur = 0.90 & w_dy = w_yur - w_yll
+    w_xll = 0.0 & w_xur = 1.0 & w_dx = w_xur - w_xll
+    w_yll = 0.2 & w_yur = 1.0 & w_dy = w_yur - w_yll
     w_dx_dy = w_dx / w_dy       ; 1.4
 ; color bar, position, dimension
-    cbar_dx = 1./3.
-    cbar_dy = 1./70.
+    ;cbar_dx = 1./3.
+    ;cbar_dy = 1./70.
+    cbar_dx = 4./5.
+    cbar_dy = 1./24.
     cbar_xll = (1. - cbar_dx)/2.
     cbar_xur = (1. + cbar_dx)/2.
-    cbar_yur = w_yll - cbar_dy
+    ;cbar_yur = w_yll - cbar_dy
+    cbar_yur = w_yll - cbar_dy*1.5d
     cbar_yll = cbar_yur - cbar_dy
 ; polarisation color ring, position, dimension
     cring_dx = 1./15.
@@ -2479,8 +2487,10 @@ if (projtype eq 2) then begin
 ; cring_yll = cring_yur - cring_dy
     cring_yll = .025
 ; location of astro. coordinate
+    ;x_aspos = 0.5
+    ;y_aspos = 0.04
     x_aspos = 0.5
-    y_aspos = 0.04
+    y_aspos = 0.01 + GNMCORDOFF
 ; location of pol vector scale
     vscal_x = 0.05
     vscal_y = 0.01
@@ -2813,18 +2823,20 @@ if (do_ps) then begin
     DEVICE, FILE=file_ps, /COLOR, BITS = 8 ; opens the file that will receive the PostScript plot
     if (do_gnom || (do_orth && ~do_fullsky)) then begin
         do_portrait = 1
-        DEVICE, /PORTRAIT,  XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=4, YOFFSET=2
+        ;DEVICE, /PORTRAIT,  XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=4, YOFFSET=2
+        DEVICE, /PORTRAIT,  XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=4, YOFFSET=2, /ENCAPSULATED, /HELVETICA, FONT_size=FNTsz
     endif
     if (do_moll || (do_orth && do_fullsky)) then begin
         ;do_landscape = 1
         ;DEVICE, /LANDSCAPE, XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=4, YOFFSET=hxsize+yoffset
         do_portrait = 1
-        DEVICE, /PORTRAIT, XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=4, YOFFSET=hxsize+yoffset, /ENCAPSULATED, /HELVETICA, FONT_size=8
+        DEVICE, /PORTRAIT, XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=4, YOFFSET=hxsize+yoffset, /ENCAPSULATED, /HELVETICA, FONT_size=FNTsz
     endif
     if (do_cart || do_azeq) then begin
         do_landscape = 1
 ;         DEVICE, /LANDSCAPE, XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=4, YOFFSET=hxsize+yoffset
-        DEVICE, /LANDSCAPE, XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=0, YOFFSET=hxsize+yoffset
+        ;DEVICE, /LANDSCAPE, XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=0, YOFFSET=hxsize+yoffset
+        DEVICE, /LANDSCAPE, XSIZE=hxsize, YSIZE=hxsize/du_dv*w_dx_dy, XOFFSET=0, YOFFSET=hxsize+yoffset, /ENCAPSULATED, /HELVETICA, FONT_size=FNTsz
     endif
     TVLCT,red,green,blue
     thick_dev = 2. ; device dependent thickness factor
@@ -3087,7 +3099,7 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           cb_PosLineTmajors = 0d
           cb_PosTstr = ' 0 '
           ;
-          FOR ii = 0, Texp[1] - 1 DO cb_PosLineTminors = [cb_PosLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)]  
+          FOR ii = 0, Texp[1] - 0 DO cb_PosLineTminors = [cb_PosLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)]  
           FOR ii = 0, Texp[1]     DO cb_PosLineTmajors = [cb_PosLineTmajors,10d^DOUBLE(ii)]
           FOR ii = 0, Texp[1]     DO cb_PosTstr = [cb_PosTstr,' 10!U'+STRTRIM(STRING(ii),2)+'!N']
           ;
@@ -3118,7 +3130,7 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           cb_NegLineTmajors = 0d
           cb_NegTstr = '-1  '
           ;
-          FOR ii = 0, Texp[0] - 1 DO cb_NegLineTminors = [cb_NegLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)*(-1d)]  
+          FOR ii = 0, Texp[0] - 0 DO cb_NegLineTminors = [cb_NegLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)*(-1d)]  
           FOR ii = 0, Texp[0]     DO cb_NegLineTmajors = [cb_NegLineTmajors,10d^DOUBLE(ii)*(-1d)]
           FOR ii = 0, Texp[0]     DO cb_NegTstr = [cb_NegTstr,'-10!U'+STRTRIM(STRING(ii),2)+'!N ']
           ;
@@ -3234,14 +3246,14 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           ENDFOR
         ENDIF
         IF KEYWORD_SET(CBLBL) THEN BEGIN  ; there is a unit label
-          XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE), CBLBL, $
+          XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE) + CBLABOFF, CBLBL, $
                 ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
         ENDIF
         ;
       ENDIF ELSE BEGIN ; only label the end points.
         ;
         IF KEYWORD_SET(CBLBL) THEN BEGIN  ; there is a unit label
-          XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE), CBLBL, $
+          XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE) + CBLABOFF, CBLBL, $
                 ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
           XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
                 ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
@@ -3295,16 +3307,16 @@ if (~keyword_set(nobar)  && do_polvector) then begin
     format = '(g10.2)'
     if (vp_phys lt 1.e3 && vp_phys ge 10)    then format = '(f5.1)'
     if (vp_phys lt 10   && vp_phys gt 1.e-1) then format = '(f4.2)'
-    xyouts, vscal_x, vscal_y + .5*(vp_plot)*w_dy, '!6  '+strtrim(string(vp_phys,form=format),2)+' '+sunits,ALIGN=0.,/normal, chars=1.1*charsfactor, charthick=mycharthick
+    xyouts, vscal_x, vscal_y + .5*(vp_plot)*w_dy, '!6  '+strtrim(string(vp_phys,form=format),2)+' '+sunits+'!X',ALIGN=0.,/normal, chars=1.1*charsfactor, charthick=mycharthick
 endif
 
 ;  the title
-if (~ keyword_set(titleplot)) then title= '!6'+title_display else title='!6'+titleplot
+if (~ keyword_set(titleplot)) then title= '!6'+title_display+'!X' else title='!6'+titleplot+'!X'
 XYOUTS, x_title, y_title ,title, align=0.5, /normal, chars=1.6*charsfactor, charthick=mycharthick
 
 ;  the subtitle
 if (keyword_set(subtitle)) then begin
-    XYOUTS, x_subtl, y_subtl ,'!6 '+subtitle, align=0.5, /normal, chars=1.6*.75*charsfactor, charthick=mycharthick
+    XYOUTS, x_subtl, y_subtl ,'!6 '+subtitle+'!X', align=0.5, /normal, chars=1.6*.75*charsfactor, charthick=mycharthick
 endif
 
 ; ---------- projection dependent ------------------
@@ -3315,7 +3327,7 @@ if (do_gnom) then begin
         if (undefined(rot_ang)) then rot_ang = [0.,0.,0.] else rot_ang = ([rot_ang,0,0])(0:2)
         rot_0 = STRTRIM(STRING(rot_ang(0),form='(f6.1)'),2)
         rot_1 = STRTRIM(STRING(rot_ang(1),form='(f6.1)'),2)
-        XYOUTS,x_aspos,y_aspos,'('+rot_0+', '+rot_1+') '+decode_coord(coord_out),/normal,align=0.5
+        XYOUTS,x_aspos,y_aspos,'!X('+rot_0+', '+rot_1+') '+decode_coord(coord_out),/normal,align=0.5
     endif
 
 ; ; cross in the middle of plot
@@ -4026,7 +4038,7 @@ pro LS_mollview, file_in, select_in, $
               CTDIR=CTDIR, $
               CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, MODASINH=MODASINH, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-              LATLONGDIFF=LATLONGDIFF
+              LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz
 
 ;+
 ; NAME:
@@ -4583,7 +4595,7 @@ LS_proj2out, $
   IGLSIZE=iglsize, RETAIN=retain, TRUECOLORS=truecolors, TRANSPARENT=transparent, CHARTHICK=charthick, $
   JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
   CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF
+  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz
 
 w_num = !d.window
 ; restore original color table and PLOTS settings
@@ -4592,6 +4604,539 @@ record_original_settings, original_settings, /restore
 return
 end
 ;
+;
+;
+;
+;
+; -----------------------------------------------------------------------------
+;
+;  Copyright (C) 1997-2012  Krzysztof M. Gorski, Eric Hivon, Anthony J. Banday
+;
+;
+;
+;
+;
+;  This file is part of HEALPix.
+;
+;  HEALPix is free software; you can redistribute it and/or modify
+;  it under the terms of the GNU General Public License as published by
+;  the Free Software Foundation; either version 2 of the License, or
+;  (at your option) any later version.
+;
+;  HEALPix is distributed in the hope that it will be useful,
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;  GNU General Public License for more details.
+;
+;  You should have received a copy of the GNU General Public License
+;  along with HEALPix; if not, write to the Free Software
+;  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+;
+;  For more information about HEALPix see http://healpix.jpl.nasa.gov
+;
+; -----------------------------------------------------------------------------
+pro LS_data2gnom, data, pol_data, pix_type, pix_param, do_conv, do_rot, coord_in, coord_out, eul_mat, $
+               color, Tmax, Tmin, color_bar, dx, planvec, vector_scale, $
+               PXSIZE=pxsize, PYSIZE=pysize, ROT=rot_ang, LOG=log, HIST_EQUAL=hist_equal, $
+               MAX=max_set, MIN=min_set, $
+               RESO_ARCMIN=reso_arcmin, FITS = fits, $
+               FLIP=flip, DATA_plot = data_plot, $
+               POLARIZATION=polarization, SILENT=silent, PIXEL_LIST=pixel_list, ASINH=asinh, $
+               TRUECOLORS=truecolors, DATA_TC=data_tc, MAP_OUT=map_out, MODASINH=MODASINH
+
+;+
+;==============================================================================================
+;     DATA2GNOM
+;
+;     turns a Healpix or Quad-cube map into in Gnomonic rectangular map
+;
+;     DATA2GNOM,  data, pix_type, pix_param, do_conv, do_rot, coord_in, coord_out, eul_mat,
+;          color, Tmax, Tmin, color_bar, dx, planvec, vector_scale,
+;          pxsize=, pysize=, rot=, log=, hist_equal=, max=, min=,
+;          reso_arcmin=, fits=, flip=, data_plot=, polarization=, silent=,
+;          pixel_list=, TRUECOLORS=, DATA_TC=, MAP_OUT=
+;
+; IN :
+;      data, pix_type, pix_param, do_conv, do_rot, coord_in, coord_out, eul_mat
+; OUT :
+;      color, Tmax, Tmin, color_bar, dx, planvec, vector_scale
+; KEYWORDS
+;      Pxsize, Pysize, Rot, Log, Hist_equal, Max, Min, Reso_arcmin,
+;      Fits, flip, data_plot, polarization, pixel_list, asinh, map_out
+;
+;  called by gnomview
+;
+;  HISTORY; Feb 2005: added small_file to avoid pol direction variation within pixels
+; Sep 2007: added /silent
+; April 2008: added pixel_list=
+; July 2008: added asinh
+; May 2009: can deal with maps without any valid pixel
+;==============================================================================================
+;-
+
+do_true = keyword_set(truecolors) 
+truetype = do_true ? truecolors : 0
+proj_small = 'gnomic'
+du_dv = 1.    ; aspect ratio
+fudge = 1.00  ; 
+if keyword_set(flip) then flipconv=1 else flipconv = -1  ; longitude increase leftward by default (astro convention)
+if undefined(polarization) then polarization=0
+do_polamplitude = (polarization[0] eq 1)
+do_poldirection = (polarization[0] eq 2)
+do_polvector    = (polarization[0] eq 3)
+
+!P.BACKGROUND = 1               ; white background
+!P.COLOR = 0                    ; black foreground
+
+mode_col = keyword_set(hist_equal)
+;mode_col = mode_col + 2*keyword_set(log) + 4*keyword_set(asinh)
+mode_col = mode_col + 2*keyword_set(log) + 4*keyword_set(asinh) + 8*keyword_set(modasinh)
+
+obs_npix = n_elements(data)
+npix_full = (pix_type eq 'Q') ? 6*(4L)^(pix_param-1) : nside2npix(pix_param)
+bad_data= !healpix.bad_value
+
+if (do_poldirection or do_polvector) then begin
+    ; compute new position of pixelisation North Pole in the plot coordinates
+    north_pole = [0.,0.,1.]
+    if (do_conv) then north_pole = SKYCONV(north_pole, inco= coord_in, outco=coord_out)
+    if (do_rot) then north_pole = north_pole # transpose(eul_mat)
+endif
+; -------------------------------------------------------------
+; create the rectangular window
+; -------------------------------------------------------------
+if defined(pxsize) then xsize = pxsize*1L else xsize = 500L
+if defined(pysize) then ysize = pysize*1L else ysize = xsize
+if defined(reso_arcmin) then resgrid = reso_arcmin/60. else resgrid = 1.5/60.
+dx      = resgrid * !DtoR
+zsize = (do_true) ? 3 : 1
+N_uv = xsize*ysize
+indlist = (n_elements(pixel_list) eq n_elements(data[*,0]))
+small_file = ((!pi*4./dx^2 GT npix_full && do_poldirection))
+
+
+if (~keyword_set(silent)) then begin
+    print,'Input map  :  ',3600.*6.d0/sqrt(!dpi*npix_full),' arcmin / pixel ',form='(a,f8.3,a)'
+    print,'gnomonic map :',resgrid*60.,' arcmin / pixel ',xsize,'*',ysize,form='(a,f8.3,a,i4,a,i4)'
+endif
+
+if (small_file) then begin
+    ; file smaller than final map, make costly operation on the file
+    ; initial data is destroyed and replaced by color
+    if (do_poldirection or do_polvector) then begin
+        phi = 0.
+        if (do_rot or do_conv) then begin
+            ; position of each map pixel after rotation and coordinate changes
+            if (indlist) then begin
+                id_pix = pixel_list
+            endif else begin
+                id_pix = lindgen(npix_full)
+            endelse
+            case pix_type of
+                'R' : PIX2VEC_RING, pix_param, id_pix, vector ; Healpix ring
+                'N' : PIX2VEC_NEST, pix_param, id_pix, vector; Healpix nest
+                'Q' : vector = PIX2UV(pix_param, id_pix) ; QuadCube (COBE cgis software)
+                else : print,'error on pix_type'
+            endcase
+            id_pix = 0
+            if (do_conv) then vector = SKYCONV(vector, inco= coord_in, outco=coord_out)
+            if (do_rot) then vector = vector # transpose(eul_mat)
+            ; compute rotation of local coordinates around each vector
+            tmp_sin = north_pole[1] * vector[*,0] - north_pole[0] * vector[*,1]
+            tmp_cos = north_pole[2] - vector[*,2] * (north_pole[0:2] ## vector)
+            if (flipconv lt 0) then tmp_cos = flipconv * tmp_cos
+            phi = ATAN(tmp_sin, tmp_cos) ; angle in radians
+            tmp_sin = 0. & tmp_cos = 0 & vector = 0.
+        endif
+        data_plot = data
+        if (do_poldirection) then begin
+            data = (data - phi + 4*!PI) MOD (2*!PI) ; angle
+            min_set = 0. & max_set = 2*!pi
+        endif
+        if (do_polvector) then begin
+            pol_data[*,1] = (pol_data[*,1] - phi + 4*!PI) MOD (2*!PI) ; angle is rotated
+        endif
+    endif else begin ; temperature only or polarisation amplitude only
+        data_plot = data
+    endelse
+    ; color observed pixels
+    if (do_true) then begin
+        if (truetype eq 2) then begin
+            for i=0,2 do begin
+                find_min_max_valid, data_tc[*,i], mindata, maxdata, valid=Obs, bad_data = 0.9 * bad_data
+                data_tc[0,i] = LS_COLOR_MAP(data_tc[*,i], mindata, maxdata, Obs, $
+                                    color_bar = color_bar, mode=mode_col, silent=silent )
+            endfor
+        endif else begin
+            find_min_max_valid, data_tc, mindata, maxdata, valid=Obs, bad_data = 0.9 * bad_data
+            data_tc = LS_COLOR_MAP(data_tc, mindata, maxdata, Obs, $
+                                color_bar = color_bar, mode=mode_col, $
+                                minset = min_set, maxset = max_set, silent=silent )
+        endelse
+    endif else begin
+        find_min_max_valid, data, mindata, maxdata, valid=Obs, bad_data = 0.9 * bad_data
+        data    = LS_COLOR_MAP(data, mindata, maxdata, Obs, $
+                         color_bar = color_bar, mode=mode_col, $
+                         minset = min_set, maxset = max_set, silent=silent )
+    endelse
+    if (do_polvector) then begin ; rescale polarisation vector in each valid pixel
+        pol_data[0,0] = vector_map(pol_data[*,0], Obs, vector_scale = vector_scale)
+    endif
+    if defined(Obs) then Obs = 0
+    Tmin = mindata & Tmax = maxdata
+    color = MAKE_ARRAY(/BYTE, xsize, ysize, zsize, Value = !P.BACKGROUND) ; white
+    grid = FLTARR(xsize, ysize)
+endif else begin ; large
+    grid = FLTARR(xsize, ysize, zsize)
+endelse
+if do_polvector then planvec = MAKE_ARRAY(/FLOAT,xsize,ysize, 2, Value = bad_data) 
+; -------------------------------------------------------------
+; makes the projection around the chosen contact point
+; -------------------------------------------------------------
+; position on the planar grid  (1,u,v)
+x0 = +1.
+xll= 0 & xur =  xsize-1
+yll= 0 & yur =  ysize-1
+xc = 0.5*(xll+xur)  ; & deltax = (xur - xc)
+yc = 0.5*(yll+yur)  ; & deltay = (yur - yc)
+
+yband = LONG(5.e5 / FLOAT(xsize))
+for ystart = 0, ysize - 1, yband do begin 
+    yend   = (ystart + yband - 1) < (ysize - 1)
+    nband = yend - ystart + 1
+    npb = xsize * nband
+    u = flipconv*(FINDGEN(xsize) - xc)# REPLICATE(dx,nband)   ; minus sign = astro convention
+    v =           REPLICATE(dx,xsize) # (FINDGEN(nband) + ystart - yc)
+    x = replicate(x0, npb)
+    vector = [[x],[reform(u,npb,/over)],[reform(v,npb,/over)]] ; non normalised vector
+    ; --------------------------------
+    ; deal with polarisation direction
+    ; --------------------------------
+    if (do_poldirection or do_polvector) then begin
+        phi = 0.
+        if (do_rot or do_conv) then begin
+            vector = vector / (sqrt(total(vector^2, 2))#replicate(1,3)) ; normalize vector
+            ; compute rotation of local coordinates around each vector
+            tmp_sin = north_pole[1] * vector[*,0] - north_pole[0] * vector[*,1]
+            tmp_cos = north_pole[2] - vector[*,2] * (north_pole[0:2] ## vector)
+            if (flipconv lt 0) then tmp_cos = flipconv * tmp_cos
+            phi = ATAN(tmp_sin, tmp_cos) ; angle in radians
+            tmp_sin = 0. & tmp_cos = 0
+        endif
+    endif
+    ; ---------
+    ; rotation
+    ; ---------
+    if (do_rot) then vector = vector # eul_mat
+    if (do_conv) then vector = SKYCONV(vector, inco = coord_out, outco =  coord_in)
+          ; we go from the final Gnomonic map (system coord_out) to
+          ; the original one (system coord_in)
+    ; -------------------------------------------------------------
+    ; converts the position on the sphere into pixel number
+    ; and project the corresponding data value on the map
+    ; -------------------------------------------------------------
+    case pix_type of
+        'R' : VEC2PIX_RING, pix_param, vector, id_pix ; Healpix ring
+        'N' : VEC2PIX_NEST, pix_param, vector, id_pix ; Healpix nest
+        'Q' : id_pix = UV2PIX(vector, pix_param) ; QuadCube (COBE cgis software)
+        else : print,'error on pix_type'
+    endcase
+    if (small_file) then begin ; (data and data_pol are already rescaled and color coded)
+        if (do_true) then begin
+            for i=0,zsize-1 do color[ystart*xsize+i*n_uv] = data[id_pix,i]
+            grid[ystart*xsize]  = data_plot[id_pix] ; unaltered data
+        endif else begin
+            color[ystart*xsize] = data[id_pix]
+            grid[ystart*xsize]  = data_plot[id_pix] ; unaltered data
+            if (do_polvector) then begin
+                planvec[ystart*xsize]       = pol_data[id_pix,0] ; amplitude
+                planvec[ystart*xsize+n_uv]  = pol_data[id_pix,1] ; direction
+            endif
+        endelse
+    endif else begin            ; (large file : do the projection first)
+        if (do_true) then begin
+            for i=0,zsize-1 do grid[ystart*xsize+i*n_uv] = data_tc[id_pix,i]
+        endif else begin
+            if (do_poldirection) then begin
+                grid[ystart*xsize] = (data[id_pix] - phi + 4*!PI) MOD (2*!PI) ; in 0,2pi
+            endif else if (do_polvector) then begin
+                grid[ystart*xsize]         = data[id_pix]
+                planvec[ystart*xsize]      = pol_data[id_pix,0]
+                planvec[ystart*xsize+n_uv] = (pol_data[id_pix,1] - phi + 4*!PI) MOD (2*!PI) ; angle
+            endif else begin
+;;;            grid[ystart*xsize] = data[id_pix]
+                grid[ystart*xsize] = sample_sparse_array(data, id_pix, in_pix=pixel_list, default= !healpix.bad_value)
+            endelse
+        endelse
+    endelse
+endfor
+u = 0 & v = 0 & x = 0 & vector = 0
+
+; -------------------------------------------------------------
+; Test for unobserved pixels
+; -------------------------------------------------------------
+if (small_file) then begin
+    data = 0 & pol_data = 0
+endif else begin
+    data_plot = temporary(data)
+    pol_data = 0
+    find_min_max_valid, grid, mindata, maxdata, valid=Obs, bad_data = 0.9 * bad_data
+endelse
+
+;-----------------------------------
+; export in FITS and as an array the original gnomic map before alteration
+;-----------------------------------
+
+; grid -> IDL array
+if arg_present(map_out) then map_out = proj2map_out(grid, bad_data=bad_data)
+
+; grid -> FITS file
+if keyword_set(fits) then begin 
+    proj2fits, grid, fits, $
+               projection = 'GNOM', flip=flip, $
+               rot = rot_ang, coord=coord_out, reso = resgrid*60., unit = sunits, min=mindata, max = maxdata
+endif
+
+; -------------------------------------------------------------
+; set min and max and computes the color scaling
+; -------------------------------------------------------------
+if (small_file) then begin
+
+endif else begin
+    if (do_poldirection) then begin
+        min_set = 0.
+        max_set = 2*!pi
+    endif
+    if (truetype eq 2) then begin
+        ; truecolors=2 map each field to its color independently
+        color = bytarr(xsize,ysize,zsize)
+        for i=0,zsize-1 do begin
+            find_min_max_valid, grid[*,*,i], mindata, maxdata, valid=Obs, bad_data = 0.9 * bad_data
+            color[0,0,i] = COLOR_MAP(grid[*,*,i], mindata, maxdata, Obs, $
+                          color_bar = color_bar, mode=mode_col, silent=silent)
+        endfor
+    endif else begin
+        ; same for truecolors=1 and false colors:
+        color = COLOR_MAP(grid, mindata, maxdata, Obs, $
+                          color_bar = color_bar, mode=mode_col, $
+                          minset = min_set, maxset = max_set, silent=silent)
+    endelse
+        
+    if (do_polvector) then begin ; rescale polarisation vector in each valid pixel
+        planvec[*,*,0] = vector_map(planvec[*,*,0], Obs, vector_scale = vector_scale)
+    endif
+    Obs = 0
+    grid = 0
+    Tmin = mindata & Tmax = maxdata
+endelse
+
+return
+end
+;
+;
+;
+;
+;
+;
+;
+;
+; -----------------------------------------------------------------------------
+;
+;  Copyright (C) 1997-2012  Krzysztof M. Gorski, Eric Hivon, Anthony J. Banday
+;
+;
+;
+;
+;
+;  This file is part of HEALPix.
+;
+;  HEALPix is free software; you can redistribute it and/or modify
+;  it under the terms of the GNU General Public License as published by
+;  the Free Software Foundation; either version 2 of the License, or
+;  (at your option) any later version.
+;
+;  HEALPix is distributed in the hope that it will be useful,
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;  GNU General Public License for more details.
+;
+;  You should have received a copy of the GNU General Public License
+;  along with HEALPix; if not, write to the Free Software
+;  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+;
+;  For more information about HEALPix see http://healpix.jpl.nasa.gov
+;
+; -----------------------------------------------------------------------------
+PRO LS_gnomview, file_in, select_in, $
+              ASINH = asinh, $
+              CHARSIZE = charsize, $
+              CHARTHICK = charthick, $
+              COLT = colt, $
+              COORD = coord, $
+              CROP = crop, $
+              EXECUTE=execute, $
+              FACTOR = factor, $
+              FITS = fits, $
+              FLIP = flip, $
+              GIF = gif, $
+              GLSIZE = glsize, $
+              GRATICULE = graticule, $
+              HBOUND = hbound, $
+              HELP = help, $
+              HIST_EQUAL = hist_equal, $
+              HXSIZE = hxsize, $
+              IGLSIZE = iglsize, $
+              IGRATICULE = igraticule, $
+              JPEG=jpeg, $
+              LOG = log, $
+              MAP_OUT = map_out, $
+              MAX = max_set, $
+              MIN = min_set, $
+              NESTED = nested_online, $
+              NOBAR = nobar, $
+              NOLABELS = nolabels, $
+              NOPOSITION = noposition, $
+              OFFSET = offset, $
+              ONLINE = online, $
+              OUTLINE = outline, $
+              PNG = png, $
+              POLARIZATION = polarization, $
+              PREVIEW = preview, $
+              PS = ps, $
+              PXSIZE = pxsize, $
+              PYSIZE = pysize, $
+              QUADCUBE = quadcube, $
+              RESO_ARCMIN = reso_arcmin, $
+              RETAIN = retain, $
+              ROT = rot, $
+              SAVE = save, $
+              SILENT = silent, $
+              SUBTITLE = subtitle, $
+              TITLEPLOT = titleplot, $
+              TRANSPARENT = transparent, $
+              TRUECOLORS = truecolors, $
+              UNITS = units, $
+              WINDOW = window, $
+              XPOS = xpos, $
+              YPOS = ypos, $
+              vector_scale = vector_scale, $
+              CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
+              CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, CBLABOFF=CBLABOFF, $
+              MODASINH=MODASINH, LATLONGDIFF=LATLONGDIFF, CORDOFF=CORDOFF, FNTsz=FNTsz
+
+;+
+; for extended description see mollview or the paper documentation
+;-
+IF N_ELEMENTS(CBLABOFF) EQ 0 THEN CBLABOFF = 0.01d ; 0.0125d ; 0.025d
+IF N_ELEMENTS(CORDOFF) EQ 0 THEN BEGIN
+  IF N_ELEMENTS(CBLBL) GT 0 THEN CORDOFF = 0d ELSE CORDOFF = 0.025d
+ENDIF
+defsysv, '!healpix', exists = exists
+if (exists ne 1) then init_healpix
+@viewcom ; define common
+
+data_plot = 0 ; empty common array
+; record original color table and PLOTS settings
+record_original_settings, original_settings
+
+loadsky                         ; cgis package routine, define rotation matrices
+projection = 'GNOMIC'
+routine = 'gnomview'
+
+uroutine = strupcase(routine)
+if keyword_set(help) then begin
+    doc_library,'mollview'
+    return
+endif
+
+if keyword_set(gif) then begin
+    message_gif, code=routine, error=error_gif
+    if (error_gif) then return
+endif
+
+if (n_params() lt 1 or n_params() gt 2) then begin
+    PRINT, 'Wrong number of arguments in '+uroutine
+    print,'Syntax : '
+    print, uroutine+', File, [Select, ]'
+    print,'              [ASINH=, CHARSIZE=, COLT=, COORD=, CROP=, '
+    print,'              EXECUTE=, FACTOR=, FITS=, FLIP=, GIF=, GLSIZE=, GRATICULE=, '
+    print,'              HBOUND=, HELP=, '
+    print,'              HIST_EQUAL=, HXSIZE=, '
+    print,'              IGLSIZE=, IGRATICULE=,'
+    print,'              JPEG=, '
+    print,'              LOG=, '
+    print,'              MAP_OUT=, MAX=, MIN=, '
+    print,'              NESTED=, NOBAR=, NOLABELS=, NOPOSITION = '
+    print,'              OFFSET=, ONLINE=, OUTLINE=,'
+    print,'              PNG=,'
+    print,'              POLARIZATION=, PREVIEW=, '
+    print,'              PS=, PXSIZE=, PYSIZE=, QUADCUBE= ,'
+    print,'              RESO_ARCMIN=, RETAIN =, ROT=, '
+    print,'              SAVE=, SILENT=, SUBTITLE=, '
+    print,'              TITLEPLOT=, TRANSPARENT=, TRUECOLORS= '
+    print,'              UNITS=, WINDOW=, XPOS=, YPOS=]'
+    print
+    print,' Type '+uroutine+', /help '
+    print,'   for an extended help'
+    return
+endif
+
+IF (undefined(file_in)) then begin
+    print,routine+': Undefined variable as 1st argument'
+    return
+endif
+; file_in1   = file_in
+; if defined(select_in) then select_in1 = select_in else select_in1=1
+; if defined(save)      then save1 = save           else save1=0
+; if defined(online)    then online1 = online       else online1=0
+do_flip = keyword_set(flip)
+
+if (!D.n_colors lt 4) then begin
+    print,' : Sorry ... not enough colors ('+strtrim(string(!d.n_colors),2)+') available'
+    return
+endif
+
+polar_type = 0
+if keyword_set(polarization) then polar_type = polarization
+
+loaddata_healpix, $
+  file_in, select_in,$
+  data, pol_data, pix_type, pix_param, do_conv, do_rot, coord_in, coord_out, eul_mat, title_display, sunits, $
+  SAVE=save,ONLINE=online,NESTED=nested_online,UNITS=units,COORD=coord,FLIP=flip, $
+  ROT=rot,QUADCUBE=quadcube,LOG=log,ERROR=error, $
+  POLARIZATION=polarization, FACTOR=factor, OFFSET=offset, SILENT=silent, COMPRESS=1, PIXEL_LIST=pixel_list, $
+  TRUECOLORS=truecolors, DATA_TC=data_tc
+if error NE 0 then return
+
+LS_data2gnom, $
+  data, pol_data, pix_type, pix_param, do_conv, do_rot, coord_in, coord_out, eul_mat, $
+  planmap, Tmax, Tmin, color_bar, dx, planvec, vector_scale, $
+  PXSIZE=pxsize, PYSIZE=pysize, ROT=rot, LOG=log, HIST_EQUAL=hist_equal, $
+  MAX=max_set, MIN=min_set, $
+  RESO_ARCMIN = reso_arcmin, FITS = fits, FLIP=flip, DATA_plot = data_plot, $
+  POLARIZATION=polarization, SILENT=silent, PIXEL_LIST=pixel_list, ASINH=asinh, $
+  TRUECOLORS=truecolors, DATA_TC=data_tc, MAP_OUT=map_out, MODASINH=MODASINH
+
+LS_proj2out, $
+  planmap, Tmax, Tmin, color_bar, dx, title_display, $
+  sunits, coord_out, do_rot, eul_mat, planvec, vector_scale, $
+  CHARSIZE=charsize, COLT=colt, CROP=crop, GIF = gif, GRATICULE = graticule, HXSIZE = hxsize, $
+  NOBAR = nobar, NOLABELS = nolabels, NOPOSITION = noposition, PNG = png, PREVIEW = preview, PS = ps, $
+  PXSIZE=pxsize, PYSIZE=pysize, ROT = rot, SUBTITLE = subtitle, $
+  TITLEPLOT = titleplot, XPOS = xpos, YPOS = ypos, $
+  POLARIZATION=polarization, OUTLINE=outline, /GNOM, FLIP=flip, COORD_IN=coord_in, IGRATICULE=igraticule, $
+  HBOUND = hbound, WINDOW = window, EXECUTE=execute, SILENT=silent, GLSIZE=glsize, $
+  IGLSIZE=iglsize, RETAIN=retain, TRUECOLORS=truecolors, TRANSPARENT=transparent, $
+  CHARTHICK=charthick, JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
+  CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, CBLABOFF=CBLABOFF, $
+  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, GNMCORDOFF=CORDOFF, FNTsz=FNTsz
+
+w_num = !d.window
+; restore original color table and PLOTS settings
+record_original_settings, original_settings, /restore
+
+RETURN
+END
 ;
 ;
 ;
