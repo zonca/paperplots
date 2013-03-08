@@ -1445,19 +1445,6 @@ for i=1,npoints-1 do begin
    endfor
 endfor
 
-if (keyword_set(ascii)) then begin
-   openw, unit, ascii,/get_lun
-   for i=0l,255l do begin
-      printf,unit, R(i),G(i),B(i)
-   endfor
-   free_lun,unit
-endif
-if (keyword_set(verbose)) then begin
-   print, 'R final=',R
-   print, 'G final=',G
-   print, 'B final=',B
-endif
-;stop
 IF KEYWORD_SET(HIGHDR) THEN BEGIN
   ;
   ;r_ = [REVERSE(r[0:127]),REVERSE(r[128:255])]
@@ -1475,6 +1462,20 @@ IF KEYWORD_SET(HIGHDR) THEN BEGIN
   r = r_ & g = g_ & b = b_
   ;
 ENDIF
+
+if (keyword_set(ascii)) then begin
+   openw, unit, ascii,/get_lun
+   for i=0l,255l do begin
+      printf,unit, R(i),G(i),B(i)
+   endfor
+   free_lun,unit
+endif
+if (keyword_set(verbose)) then begin
+   print, 'R final=',R
+   print, 'G final=',G
+   print, 'B final=',B
+endif
+;stop
  
 modifyct,41,'parchment1',R,G,B, FILE=CTDIR+CTfile
 
@@ -1853,12 +1854,14 @@ case projtype of
             if (nk gt 0) then begin
                 u = vv(k,1)/vv(k,0)
                 v = vv(k,2)/vv(k,0)
-                good = where(abs(u) lt !x.crange[1]*1.1 and abs(v) lt !y.crange[1]*1.1 ,ng)
+                good = where(abs(u) lt !x.crange[1]*1.01 and abs(v) lt !y.crange[1]*1.01 ,ng)
                 ; reorder points to have one continuous segment across the plot
                 bad = where(good-shift(good,1) ne 1, nbad)
                 if (nbad gt 1) then good = shift(good, bad[1])
 ;                oplot, flipconv * u, v, _extra = oplot_kw
-               if (ng gt 1) then oplot_sphere, flipconv *u[good], v[good], _extra = oplot_kw, linelabel=linelabel,/flush, charsize=charsize
+                IF !D.name EQ 'PS' THEN device, /HELVETICA, FONT_size=8
+                ;stop
+               if (ng gt 1) then LS_oplot_sphere, flipconv *u[good], v[good], _extra = oplot_kw, linelabel=linelabel,/flush, charsize=charsize
             endif
         endfor
     endfor
@@ -2337,7 +2340,8 @@ pro LS_proj2out, planmap, Tmax, Tmin, color_bar, dx, title_display, sunits, $
               STAGGER=stagger, AZEQ=azeq, JPEG=jpeg, $
               CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-              MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, CBLABOFF=CBLABOFF, GNMCORDOFF=GNMCORDOFF, FNTsz=FNTsz
+              MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, CBLABOFF=CBLABOFF, $
+              GNMCORDOFF=GNMCORDOFF, FNTsz=FNTsz, CBOFF=CBOFF
 
 ;===============================================================================
 ;+
@@ -2416,6 +2420,7 @@ ENDIF
 IF N_ELEMENTS(CBLABOFF) EQ 0 THEN CBLABOFF = 0d
 IF N_ELEMENTS(GNMCORDOFF) EQ 0 THEN GNMCORDOFF = 0d
 IF N_ELEMENTS(FNTsz) EQ 0 THEN FNTsz = 8d
+IF N_ELEMENTS(CBOFF) EQ 0 THEN CBOFF = 0d
 ;
 identify_projection, projtype, projection=projection, mollweide=mollweide, gnomic=gnomic, cartesian=cartesian, orthographic=orthographic,  diamonds = diamonds, azeq=azeq
 do_gnom = 0
@@ -2476,7 +2481,7 @@ if (projtype eq 2) then begin
     cbar_xll = (1. - cbar_dx)/2.
     cbar_xur = (1. + cbar_dx)/2.
     ;cbar_yur = w_yll - cbar_dy
-    cbar_yur = w_yll - cbar_dy*1.5d
+    cbar_yur = w_yll - cbar_dy*1.5d + CBOFF
     cbar_yll = cbar_yur - cbar_dy
 ; polarisation color ring, position, dimension
     cring_dx = 1./15.
@@ -2534,7 +2539,7 @@ if (projtype eq 1) then begin
     cbar_dy = 1./24. ; 32.
     cbar_xll = (1. - cbar_dx)/2.
     cbar_xur = (1. + cbar_dx)/2.
-    cbar_yur = w_yll - cbar_dy*1.5d
+    cbar_yur = w_yll - cbar_dy*1.5d + CBOFF
     cbar_yll = cbar_yur - cbar_dy
 ; polarisation color ring, position, dimension
     cring_dx = 1./10.
@@ -2583,7 +2588,7 @@ if (projtype eq 5) then begin
     cbar_dy = 1./70.
     cbar_xll = (1. - cbar_dx)/2.
     cbar_xur = (1. + cbar_dx)/2.
-    cbar_yur = w_yll - cbar_dy
+    cbar_yur = w_yll - cbar_dy + CBOFF
     cbar_yll = cbar_yur - cbar_dy
 ; polarisation color ring, position, dimension
     cring_dx = 1./10.
@@ -2634,7 +2639,7 @@ if (projtype eq 4) then begin
     cbar_dy = 1./70.
     cbar_xll = (1. - cbar_dx)/2.
     cbar_xur = (1. + cbar_dx)/2.
-    cbar_yur = w_yll - cbar_dy
+    cbar_yur = w_yll - cbar_dy + CBOFF
     cbar_yll = cbar_yur - cbar_dy
 ; polarisation color ring, position, dimension
     cring_dx = 1./10.
@@ -2684,7 +2689,7 @@ if (projtype eq 3) then begin
     cbar_dy = 1./70.
     cbar_xll = (1. - cbar_dx)/2.
     cbar_xur = (1. + cbar_dx)/2.
-    cbar_yur = w_yll - cbar_dy
+    cbar_yur = w_yll - cbar_dy + CBOFF
     cbar_yll = cbar_yur - cbar_dy
 ; polarisation color ring, position, dimension
     cring_dx = 1./15.
@@ -2734,7 +2739,7 @@ if (projtype eq 6) then begin
     cbar_dy = 1./70.
     cbar_xll = (1. - cbar_dx)/2.
     cbar_xur = (1. + cbar_dx)/2.
-    cbar_yur = w_yll - cbar_dy
+    cbar_yur = w_yll - cbar_dy + CBOFF
     cbar_yll = cbar_yur - cbar_dy
 ; polarisation color ring, position, dimension
     cring_dx = 1./15.
@@ -3046,7 +3051,9 @@ cb_Y = (cb_Y - cbYmm[0])/(cbYmm[1] - cbYmm[0])*(cbar_xur - cbar_xll) + (cbar_xll
 ;
 ;  Outline the colourbar if desired
 ;
-IF KEYWORD_SET(CBOUT) THEN plots, THICK=2, COLOR=0, [cbar_xll,cbar_xll,cbar_xur,cbar_xur,cbar_xll],[cbar_yll,cbar_yur, cbar_yur, cbar_yll,cbar_yll], /NORMAL
+IF ~KEYWORD_SET(NOBAR) THEN BEGIN
+  IF KEYWORD_SET(CBOUT) THEN plots, THICK=2, COLOR=0, [cbar_xll,cbar_xll,cbar_xur,cbar_xur,cbar_xll],[cbar_yll,cbar_yur, cbar_yur, cbar_yll,cbar_yll], /NORMAL
+ENDIF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -3087,73 +3094,76 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           ;
         ENDELSE
         ;
-      ENDIF ELSE BEGIN
+        CBTICKLBL = cb_Tstr
+        ;
+      ENDIF ;ELSE BEGIN
         ;
         ;  A few cases here to consider, one is just a simple linear scale, perhaps leave this for the CBTICKS=0 setting, imply linear values...
         ;
         IF ((KEYWORD_SET(MODASINH)) OR (KEYWORD_SET(ASINH))) THEN BEGIN
-        ;  Do the positive colourbar lines
-        ;
-        IF Npos GT 0 THEN BEGIN
-          cb_PosLineTminors = 0d  
-          cb_PosLineTmajors = 0d
-          cb_PosTstr = ' 0 '
+          ;  Do the positive colourbar lines
           ;
-          FOR ii = 0, Texp[1] - 0 DO cb_PosLineTminors = [cb_PosLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)]  
-          FOR ii = 0, Texp[1]     DO cb_PosLineTmajors = [cb_PosLineTmajors,10d^DOUBLE(ii)]
-          FOR ii = 0, Texp[1]     DO cb_PosTstr = [cb_PosTstr,' 10!U'+STRTRIM(STRING(ii),2)+'!N']
-          ;
-          Npos_ = N_ELEMENTS(cb_PosTstr)
-          IF Npos_ GT 1 THEN cb_PosTstr[1] = '  1'
-          IF Npos_ GT 2 THEN cb_PosTstr[2] = '10'
-          ;
-          IF Tmin GT 0d THEN BEGIN
+          IF Npos GT 0 THEN BEGIN
+            cb_PosLineTminors = 0d  
+            cb_PosLineTmajors = 0d
+            cb_PosTstr = ' 0 '
             ;
-            Npos_min = N_ELEMENTS(cb_PosLineTminors)
-            Npos_maj = N_ELEMENTS(cb_PosLineTmajors)
-            IF Npos_min GT 1 THEN cb_PosLineTminors = cb_PosLineTminors[1:*]  ; get rid of zero entry as it is not within the plot range
-            IF Npos_maj GT 1 THEN cb_PosLineTmajors = cb_PosLineTmajors[1:*]
-            IF Npos_maj GT 1 THEN cb_PosTstr = cb_PosTstr[1:*]
+            FOR ii = 0, Texp[1] - 0 DO cb_PosLineTminors = [cb_PosLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)]  
+            FOR ii = 0, Texp[1]     DO cb_PosLineTmajors = [cb_PosLineTmajors,10d^DOUBLE(ii)]
+            FOR ii = 0, Texp[1]     DO cb_PosTstr = [cb_PosTstr,' 10!U'+STRTRIM(STRING(ii),2)+'!N']
             ;
-          ENDIF 
+            Npos_ = N_ELEMENTS(cb_PosTstr)
+            IF Npos_ GT 1 THEN cb_PosTstr[1] = '  1'
+            IF Npos_ GT 2 THEN cb_PosTstr[2] = '10'
+            ;
+            IF Tmin GT 0d THEN BEGIN
+              ;
+              Npos_min = N_ELEMENTS(cb_PosLineTminors)
+              Npos_maj = N_ELEMENTS(cb_PosLineTmajors)
+              IF Npos_min GT 1 THEN cb_PosLineTminors = cb_PosLineTminors[1:*]  ; get rid of zero entry as it is not within the plot range
+              IF Npos_maj GT 1 THEN cb_PosLineTmajors = cb_PosLineTmajors[1:*]
+              IF Npos_maj GT 1 THEN cb_PosTstr = cb_PosTstr[1:*]
+              ;
+            ENDIF 
+            ;
+            cb_Tminors = cb_PosLineTminors
+            cb_Tmajors = cb_PosLineTmajors
+            cb_Tstr = cb_PosTstr
+            ;
+          ENDIF
           ;
-          cb_Tminors = cb_PosLineTminors
-          cb_Tmajors = cb_PosLineTmajors
-          cb_Tstr = cb_PosTstr
+          ;  Do the negative color_bar lines, if any
+          ;  
+          IF Nneg GT 0 THEN BEGIN
+            cb_NegLineTminors = 0d  
+            cb_NegLineTmajors = 0d
+            cb_NegTstr = '-1  '
+            ;
+            FOR ii = 0, Texp[0] - 0 DO cb_NegLineTminors = [cb_NegLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)*(-1d)]  
+            FOR ii = 0, Texp[0]     DO cb_NegLineTmajors = [cb_NegLineTmajors,10d^DOUBLE(ii)*(-1d)]
+            FOR ii = 0, Texp[0]     DO cb_NegTstr = [cb_NegTstr,'-10!U'+STRTRIM(STRING(ii),2)+'!N ']
+            ;
+            Nneg_min = N_ELEMENTS(cb_NegLineTminors)
+            Nneg_maj = N_ELEMENTS(cb_NegLineTmajors)
+            IF Nneg_min GT 1 THEN cb_NegLineTminors = cb_NegLineTminors[1:*]  ; get rid of zero entry as it will be included in positive side (if at all)
+            IF Nneg_maj GT 1 THEN cb_NegLineTmajors = cb_NegLineTmajors[1:*]
+            IF Nneg_maj GT 1 THEN cb_NegTstr = cb_NegTstr[1:*]
+            ;
+            Nneg_ = N_ELEMENTS(cb_NegLineTmajors)
+            IF Nneg_ GT 0 THEN cb_NegTstr[0] = '-1   '
+            IF Nneg_ GT 1 THEN cb_NegTstr[1] = '-10 '
+            ;
+            cb_NegLineTminors = REVERSE(cb_NegLineTminors)
+            cb_NegLineTmajors = REVERSE(cb_NegLineTmajors)
+            cb_NegTstr = REVERSE(cb_NegTstr)
+            ;
+            cb_Tminors = [cb_NegLineTminors, cb_PosLineTminors]
+            cb_Tmajors = [cb_NegLineTmajors, cb_PosLineTmajors]
+            cb_Tstr = [cb_NegTstr, cb_PosTstr]
+            ;
+            ;
+          ENDIF
           ;
-        ENDIF
-        ;
-        ;  Do the negative color_bar lines, if any
-        ;  
-        IF Nneg GT 0 THEN BEGIN
-          cb_NegLineTminors = 0d  
-          cb_NegLineTmajors = 0d
-          cb_NegTstr = '-1  '
-          ;
-          FOR ii = 0, Texp[0] - 0 DO cb_NegLineTminors = [cb_NegLineTminors,10d^DOUBLE(ii)*(DINDGEN(9) + 1d)*(-1d)]  
-          FOR ii = 0, Texp[0]     DO cb_NegLineTmajors = [cb_NegLineTmajors,10d^DOUBLE(ii)*(-1d)]
-          FOR ii = 0, Texp[0]     DO cb_NegTstr = [cb_NegTstr,'-10!U'+STRTRIM(STRING(ii),2)+'!N ']
-          ;
-          Nneg_min = N_ELEMENTS(cb_NegLineTminors)
-          Nneg_maj = N_ELEMENTS(cb_NegLineTmajors)
-          IF Nneg_min GT 1 THEN cb_NegLineTminors = cb_NegLineTminors[1:*]  ; get rid of zero entry as it will be included in positive side (if at all)
-          IF Nneg_maj GT 1 THEN cb_NegLineTmajors = cb_NegLineTmajors[1:*]
-          IF Nneg_maj GT 1 THEN cb_NegTstr = cb_NegTstr[1:*]
-          ;
-          Nneg_ = N_ELEMENTS(cb_NegLineTmajors)
-          IF Nneg_ GT 0 THEN cb_NegTstr[0] = '-1   '
-          IF Nneg_ GT 1 THEN cb_NegTstr[1] = '-10 '
-          ;
-          cb_NegLineTminors = REVERSE(cb_NegLineTminors)
-          cb_NegLineTmajors = REVERSE(cb_NegLineTmajors)
-          cb_NegTstr = REVERSE(cb_NegTstr)
-          ;
-          cb_Tminors = [cb_NegLineTminors, cb_PosLineTminors]
-          cb_Tmajors = [cb_NegLineTmajors, cb_PosLineTmajors]
-          cb_Tstr = [cb_NegTstr, cb_PosTstr]
-          ;
-        ENDIF
-        ;
         ENDIF ELSE BEGIN ; the CB ticks for the modasinh and asinh color scalings are done above, do the linear case below
           ;
           IF KEYWORD_SET(HIST_EQUAL) THEN BEGIN
@@ -3193,7 +3203,13 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           ENDELSE
           ;
         ENDELSE 
-      ENDELSE  ; I now have cb_Tmajors, cb_Tstr, and possibly cb_Tminors
+      ;ENDELSE  ; I now have cb_Tmajors, cb_Tstr, and possibly cb_Tminors
+      ;
+      IF ~KEYWORD_SET(CBTICKVAL) THEN CBTICKVAL = cb_Tmajors
+      IF ~KEYWORD_SET(CBTICKLBL) THEN CBTICKLBL = cb_Tstr
+      ;
+      cb_Tmajors = CBTICKVAL
+      cb_Tstr = CBTICKLBL
       ;
       ;  Check the range of the majors against the Tmin and Tmax values
       ;
@@ -3241,11 +3257,13 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
         ;
         IF N_major GT 0 THEN BEGIN
           FOR ii = 0, N_major - 1 DO BEGIN
+            IF !D.name EQ 'PS' THEN device, /HELVETICA, FONT_size=FNTsz
             XYOUTS, CHARTHICK=mycharthick, ALIGN=0.5, /NORMAL, chars=1.3*charsfactor, COLOR=0, $
               cb_TYmajors[ii], cbar_yur + (cbar_dy/2d)*0.6d, cb_Tstr[ii] ; - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE)
           ENDFOR
         ENDIF
         IF KEYWORD_SET(CBLBL) THEN BEGIN  ; there is a unit label
+          IF !D.name EQ 'PS' THEN device, /HELVETICA, FONT_size=FNTsz
           XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE) + CBLABOFF, CBLBL, $
                 ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
         ENDIF
@@ -3253,6 +3271,7 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
       ENDIF ELSE BEGIN ; only label the end points.
         ;
         IF KEYWORD_SET(CBLBL) THEN BEGIN  ; there is a unit label
+          IF !D.name EQ 'PS' THEN device, /HELVETICA, FONT_size=FNTsz
           XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE) + CBLABOFF, CBLBL, $
                 ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
           XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
@@ -3260,6 +3279,7 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           XYOUTS, cbar_xur, cbar_yll,' '+STRTRIM(strmax,2)+' ',$
                 ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
         ENDIF ELSE BEGIN                   ;  there is not a unit label
+          IF !D.name EQ 'PS' THEN device, /HELVETICA, FONT_size=FNTsz
           XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
                 ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
           XYOUTS, cbar_xur, cbar_yll,' '+STRTRIM(strmax,2)+' '+sunits,$
@@ -3284,7 +3304,7 @@ ENDIF ELSE BEGIN  ; just plot the edge values, do not place ticks on the colorba
               ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
         XYOUTS, cbar_xur, cbar_yll,' '+STRTRIM(strmax,2)+' ',$
               ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
-        XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE), CBLBL, $
+        XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE), '!X'+CBLBL, $
               ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
       ENDIF ELSE BEGIN
         XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
@@ -4038,7 +4058,7 @@ pro LS_mollview, file_in, select_in, $
               CTDIR=CTDIR, $
               CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, MODASINH=MODASINH, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-              LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz
+              LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF
 
 ;+
 ; NAME:
@@ -4595,7 +4615,7 @@ LS_proj2out, $
   IGLSIZE=iglsize, RETAIN=retain, TRUECOLORS=truecolors, TRANSPARENT=transparent, CHARTHICK=charthick, $
   JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
   CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz
+  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF
 
 w_num = !d.window
 ; restore original color table and PLOTS settings
@@ -5022,7 +5042,7 @@ PRO LS_gnomview, file_in, select_in, $
               vector_scale = vector_scale, $
               CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, CBLABOFF=CBLABOFF, $
-              MODASINH=MODASINH, LATLONGDIFF=LATLONGDIFF, CORDOFF=CORDOFF, FNTsz=FNTsz
+              MODASINH=MODASINH, LATLONGDIFF=LATLONGDIFF, CORDOFF=CORDOFF, FNTsz=FNTsz, CBOFF=CBOFF
 
 ;+
 ; for extended description see mollview or the paper documentation
@@ -5129,7 +5149,7 @@ LS_proj2out, $
   IGLSIZE=iglsize, RETAIN=retain, TRUECOLORS=truecolors, TRANSPARENT=transparent, $
   CHARTHICK=charthick, JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
   CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, CBLABOFF=CBLABOFF, $
-  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, GNMCORDOFF=CORDOFF, FNTsz=FNTsz
+  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, GNMCORDOFF=CORDOFF, FNTsz=FNTsz, CBOFF=CBOFF
 
 w_num = !d.window
 ; restore original color table and PLOTS settings
