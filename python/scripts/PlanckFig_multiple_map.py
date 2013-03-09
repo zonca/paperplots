@@ -13,7 +13,7 @@ colombi1_cmap.set_bad("gray") # color of missing pixels
 # quality output, I plan to merge this into healpy
 
 # ratio is always 1/2
-xsize = 2000
+xsize = 1000
 ysize = xsize/2.
 
 unit = r"$\mathrm{\mu K}$"
@@ -50,12 +50,12 @@ cmap = colombi1_cmap
 colormaptag = "colombi1_"
 
 fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
-cax = fig.add_axes([0.41, 0.08, 0.2, 0.04])
 
 figure_rows, figure_columns = 2, 2
 for submap in range(4):
     # matplotlib is doing the mollveide projection
-    ax = fig.add_subplot(figure_rows, figure_columns, submap,projection='mollweide')
+    #ax = fig.add_subplot(figure_rows, figure_columns, submap,projection='mollweide')
+    ax = plt.subplot(figure_rows, figure_columns, submap,projection='mollweide')
 
     # rasterized makes the map bitmap while the labels remain vectorial
     # flip longitude to the astro convention
@@ -69,10 +69,15 @@ for submap in range(4):
     ax.xaxis.set_ticks([])
     ax.yaxis.set_ticks([])
 
+plt.subplots_adjust(left=0, right=1, top=.9, wspace=-.4, bottom=.14)
+
 # colorbar
+cax = fig.add_axes([0.35, 0.08, 0.3, 0.04])
 cb = fig.colorbar(image, cax=cax, orientation='horizontal', ticks=[vmin, vmax])
 cb.ax.xaxis.set_label_text(unit)
 cb.ax.xaxis.labelpad = -8
 # workaround for issue with viewers, see colorbar docstring
 cb.solids.set_edgecolor("face")
+
+
 plt.savefig("../figures/PlanckFig_multiple_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)
