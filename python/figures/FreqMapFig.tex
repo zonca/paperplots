@@ -1,0 +1,60 @@
+\documentclass[10pt,english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{pslatex}
+\usepackage{lscape}
+\setlength\parskip{\medskipamount}
+\setlength\parindent{0pt}
+\usepackage{a4wide}
+\usepackage{array}	
+\usepackage{amssymb}
+
+\usepackage{babel}
+\usepackage{multirow}
+\usepackage[margin=1mm]{geometry}
+\usepackage[usenames]{color}
+\definecolor{RoyalPurple}{cmyk}{0.75,0.9,0,0.1}
+\definecolor{MyBlue}{rgb}{0.0025,0.1125,0.2}
+
+\usepackage[pdftex]{graphicx}
+\usepackage[pdftex]{graphics}
+\usepackage{longtable}
+\usepackage[pdftex, colorlinks, backref=page, pdfhighlight=/P,pdfpagelayout=OneColumn,
+	plainpages=false, breaklinks, naturalnames=true, linkcolor=MyBlue, urlcolor=blue, citecolor=RoyalPurple]{hyperref}	%	hypertexnames=true
+\renewcommand{\topfraction}{.001}
+\renewcommand{\bottomfraction}{.001}
+\renewcommand{\textfraction}{.00015}
+\renewcommand{\floatpagefraction}{.99}
+\renewcommand{\dbltopfraction}{.99}
+\renewcommand{\dblfloatpagefraction}{.99}
+
+\begin{document}
+
+\title{HFI - LFI Frequency Maps}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% This is just an example template, there may be better or more efficient ways to do this.
+% Change the filenames to those you want, adjust the number of plots to what you need.
+% The trim, and clip arguments remove the individual colorbars.  This is on a 180 m wide figure scaled down to 88mm wide; it may need some tweaking for other sizes.
+% The colourbars are left at the original size, with a different one for 545 and 857 as they have different units.
+% This code template could be inserted within an \begin{figure] \end{figure} environment within your paper, 
+% or the geometry package could be used to have the new figure beome a single eps or pdf file.
+
+\begin{center}
+\begin{tabular}{cc}
+\includegraphics[trim= 0 60 0 0, clip, width=88mm]{PlanckFig_map_universal_python_180mm_30GHz} &
+\includegraphics[trim= 0 60 0 0, clip, width=88mm]{PlanckFig_map_universal_python_180mm_44GHz} \\
+\includegraphics[trim= 0 60 0 0, clip, width=88mm]{PlanckFig_map_universal_python_180mm_70GHz} & 
+\includegraphics[trim= 0 60 0 0, clip, width=88mm]{PlanckFig_map_universal_python_180mm_100GHz} \\
+\includegraphics[trim= 0 60 0 0, clip, width=88mm]{PlanckFig_map_universal_python_180mm_143GHz} & 
+\includegraphics[trim= 0 60 0 0, clip, width=88mm]{PlanckFig_map_universal_python_180mm_217GHz} \\
+\multicolumn{2}{c}{\includegraphics[trim= 0 60 0 0, clip, width=88mm]{PlanckFig_map_universal_python_180mm_353GHz}} \\
+\multicolumn{2}{c}{\includegraphics[trim= 0 0 0 200, clip, width=180mm]{PlanckFig_map_universal_python_180mm_353GHz}} \\
+\includegraphics[trim= 0 60 0 0, clip, width=88mm]{PlanckFig_map_universal_python_180mm_545GHz} & 
+\includegraphics[trim= 0 60 0 0, clip, width=88mm]{PlanckFig_map_universal_python_180mm_857GHz} \\
+\multicolumn{2}{c}{\includegraphics[trim= 0 0 0 200, clip, width=180mm]{PlanckFig_map_universal_python_180mm_857GHz}} % \\
+\end{tabular}
+\end{center}
+
+\end{document}
