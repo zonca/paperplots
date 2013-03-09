@@ -4,6 +4,12 @@ import healpy as hp
 import numpy as np
 import matplotlib.pyplot as plt
 
+"""This script creates pdf mollview plots using the Planck universal colortable,
+the output plots can then be aggregated in a single page using ../figures/FreqMapFig.tex
+
+http://github.com/zonca/paperplots
+"""
+
 
 # 10^ formatter
 from matplotlib import ticker
@@ -76,8 +82,7 @@ map_offsets = {
 c = 299792458  # speed of light in m/s
 K_b = 1.3806488e-23  # Boltzmann constant in J/K
 
-#for freq in [30, 44, 70, 100, 143, 217, 353, 545, 857]: 
-for freq in [545, 857]:
+for freq in [30, 44, 70, 100, 143, 217, 353, 545, 857]: 
 
     m = hp.ud_grade(hp.read_map(glob("NEVERCOMMIT/*_%d_*.fits" % freq)[0]), nside) * 1e6 + map_offsets.get(freq, 0)
     grid_map = m[grid_pix]
@@ -85,16 +90,14 @@ for freq in [545, 857]:
     unit = r"$\mathrm{\mu K}$"
 
     if freq > 500:
+        # input maps are in MJy/sr
         # Jysr_to_muKRJ = c**2 / 2. / K_b / (freq * 1e9) **2 * 1e-26 * 1e6 #  [uK_RJ/(Jy/sr)]
-        grid_map /= 1e3
+        grid_map /= 1e3 # convert to kJy/sr
         unit = r"$\mathrm{kJy/sr}$"
 
     fig = plt.figure(figsize=(cm2inch(width), cm2inch(width*3/4.)))
     # matplotlib is doing the mollveide projection
     ax = fig.add_subplot(111,projection='mollweide')
-
-    # remove white space around the image
-    # plt.subplots_adjust(left=0.01, right=0.99, top=0.95, bottom=0.01)
 
     # rasterized makes the map bitmap while the labels remain vectorial
     # flip longitude to the astro convention
