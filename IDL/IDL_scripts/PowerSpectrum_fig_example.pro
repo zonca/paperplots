@@ -212,7 +212,7 @@ PRO PowerSpectrum_fig_example
     !P.CHARSIZE=1						;	Set the charactersize to not be scaled from that above.
     !X.CHARSIZE=1						;	Set the X-label the same as the main figure text.
     !Y.CHARSIZE=1						;	Set the Y-label the same as the main figure text.
-    !p.thick = 1.0d						;	Set the lines a bit thicker the nthe minimum of 1 pt
+    !p.thick = 2.0d						;	Set the lines a bit thicker the nthe minimum of 1 pt
     !x.thick = !P.thick 					;	Set x-axis lines the same as others within the plot
     !y.thick = !P.thick 					;	The same for y-axis lines
     ;
