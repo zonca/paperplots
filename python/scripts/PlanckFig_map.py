@@ -6,7 +6,7 @@ nside = hp.npix2nside(len(m))
 
 # setup colormap
 from matplotlib.colors import ListedColormap
-colombi1_cmap = ListedColormap(np.loadtxt("../../data/parchment1.dat")/255.)
+colombi1_cmap = ListedColormap(np.loadtxt("../../data/Planck_Parchment_RGB.txt")/255.)
 colombi1_cmap.set_bad("gray") # color of missing pixels
 colombi1_cmap.set_under("white") # color of background, necessary if you want to use
 # this colormap directly with hp.mollview(m, cmap=colombi1_cmap)
@@ -55,42 +55,44 @@ class ThetaFormatterShiftPi(GeoAxes.ThetaFormatter):
             x += 2*np.pi
         return GeoAxes.ThetaFormatter.__call__(self, x, pos)
 
+cmap = colombi1_cmap
+colormaptag = "colombi1_"
+
 for width in [18., 12., 8.8]:
-    for cmap, colormaptag in [(None, ''), (colombi1_cmap, "colombi1_")]:
 
-        fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
-        # matplotlib is doing the mollveide projection
-        ax = fig.add_subplot(111,projection='mollweide')
+    fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
+    # matplotlib is doing the mollveide projection
+    ax = fig.add_subplot(111,projection='mollweide')
 
-        # remove white space around the image
-        plt.subplots_adjust(left=0.01, right=0.99, top=0.95, bottom=0.01)
+    # remove white space around the image
+    # plt.subplots_adjust(left=0.01, right=0.99, top=0.95, bottom=0.01)
 
-        # rasterized makes the map bitmap while the labels remain vectorial
-        # flip longitude to the astro convention
-        image = plt.pcolormesh(longitude[::-1], latitude, grid_map, vmin=vmin, vmax=vmax, rasterized=True, cmap=cmap)
+    # rasterized makes the map bitmap while the labels remain vectorial
+    # flip longitude to the astro convention
+    image = plt.pcolormesh(longitude[::-1], latitude, grid_map, vmin=vmin, vmax=vmax, rasterized=True, cmap=cmap)
 
-        # graticule
-        ax.set_longitude_grid(60)
-        ax.xaxis.set_major_formatter(ThetaFormatterShiftPi(60))
-        if width < 10:
-            ax.set_latitude_grid(45)
-            ax.set_longitude_grid_ends(90)
+    # graticule
+    ax.set_longitude_grid(60)
+    ax.xaxis.set_major_formatter(ThetaFormatterShiftPi(60))
+    if width < 10:
+        ax.set_latitude_grid(45)
+        ax.set_longitude_grid_ends(90)
 
 
-        # colorbar
-        cb = fig.colorbar(image, orientation='horizontal', shrink=.4, pad=0.05, ticks=[vmin, vmax])
-        cb.ax.xaxis.set_label_text(unit)
-        cb.ax.xaxis.labelpad = -8
-        # workaround for issue with viewers, see colorbar docstring
-        cb.solids.set_edgecolor("face")
+    # colorbar
+    cb = fig.colorbar(image, orientation='horizontal', shrink=.4, pad=0.05, ticks=[vmin, vmax])
+    cb.ax.xaxis.set_label_text(unit)
+    cb.ax.xaxis.labelpad = -8
+    # workaround for issue with viewers, see colorbar docstring
+    cb.solids.set_edgecolor("face")
 
-        ax.tick_params(axis='x', labelsize=10)
-        ax.tick_params(axis='y', labelsize=10)
+    ax.tick_params(axis='x', labelsize=10)
+    ax.tick_params(axis='y', labelsize=10)
 
-        # remove longitude tick labels
-        # ax.xaxis.set_ticklabels([])
-        # remove horizontal grid
-        # ax.xaxis.set_ticks([])
+    # remove longitude tick labels
+    # ax.xaxis.set_ticklabels([])
+    # remove horizontal grid
+    # ax.xaxis.set_ticks([])
 
-        plt.grid(True)
-        plt.savefig("../figures/PlanckFig_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)
+    plt.grid(True)
+    plt.savefig("../figures/PlanckFig_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)

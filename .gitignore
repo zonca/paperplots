@@ -1,3 +1,7 @@
+NEVERCOMMIT
+python/figures/PlanckFig_map_universal_python_180mm*
+data/parameters/wmap*
+data/wmap*
 *.py[cod]
 ipython*
 *.log
