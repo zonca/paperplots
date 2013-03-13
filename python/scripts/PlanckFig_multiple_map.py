@@ -1,13 +1,9 @@
 from setup_matplotlib import *
 import healpy as hp
+from planckcolors import colombi1_cmap
 
 m = hp.ma(hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)) * 1e3 # muK
 nside = hp.npix2nside(len(m))
-
-# setup colormap
-from matplotlib.colors import ListedColormap
-colombi1_cmap = ListedColormap(np.loadtxt("../../data/Planck_Parchment_RGB.txt")/255.)
-colombi1_cmap.set_bad("gray") # color of missing pixels
 
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
