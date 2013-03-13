@@ -22,6 +22,9 @@ class PlanckUniversalColormap(LinearSegmentedColormap):
         self.cmap = cmap
         self.N = self.cmap.N
 
+    def is_gray(self):
+        return False
+
     def __call__(self, xi, alpha=1.0, **kw):
         x = xi * (1e7+1e3) - 1e3
         yi = self.modsinh(x)
