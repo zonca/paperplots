@@ -1,13 +1,9 @@
 from setup_matplotlib import *
 import healpy as hp
+from planckcolors import colombi1_cmap
 
 m = hp.ma(hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)) * 1e3 # muK
 nside = hp.npix2nside(len(m))
-
-# setup colormap
-from matplotlib.colors import ListedColormap
-colombi1_cmap = ListedColormap(np.loadtxt("../../data/Planck_Parchment_RGB.txt")/255.)
-colombi1_cmap.set_bad("gray") # color of missing pixels
 
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
@@ -49,7 +45,7 @@ width = 18
 cmap = colombi1_cmap
 colormaptag = "colombi1_"
 
-fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
+fig = plt.figure(figsize=(cm2inch(width), cm2inch(width)*.8))
 
 figure_rows, figure_columns = 2, 2
 for submap in range(4):
@@ -69,7 +65,6 @@ for submap in range(4):
     ax.xaxis.set_ticks([])
     ax.yaxis.set_ticks([])
 
-plt.subplots_adjust(left=0, right=1, top=.9, wspace=-.4, bottom=.14)
 
 # colorbar
 cax = fig.add_axes([0.35, 0.08, 0.3, 0.04])
@@ -79,5 +74,6 @@ cb.ax.xaxis.labelpad = -8
 # workaround for issue with viewers, see colorbar docstring
 cb.solids.set_edgecolor("face")
 
+plt.subplots_adjust(left=0, right=1, top=.9, wspace=.1, hspace=.01, bottom=.14)
 
 plt.savefig("../figures/PlanckFig_multiple_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)

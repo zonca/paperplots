@@ -4,12 +4,7 @@ import healpy as hp
 m = hp.ma(hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)) * 1e3 # muK
 nside = hp.npix2nside(len(m))
 
-# setup colormap
-from matplotlib.colors import ListedColormap
-colombi1_cmap = ListedColormap(np.loadtxt("../../data/Planck_Parchment_RGB.txt")/255.)
-colombi1_cmap.set_bad("gray") # color of missing pixels
-colombi1_cmap.set_under("white") # color of background, necessary if you want to use
-# this colormap directly with hp.mollview(m, cmap=colombi1_cmap)
+from planckcolors import colombi1_cmap 
 
 use_mask = False
 
@@ -60,12 +55,10 @@ colormaptag = "colombi1_"
 
 for width in [18., 12., 8.8]:
 
-    fig = plt.figure(figsize=(cm2inch(width), cm2inch(width/2.)))
+    fig = plt.figure(figsize=(cm2inch(width), cm2inch(width)))
     # matplotlib is doing the mollveide projection
     ax = fig.add_subplot(111,projection='mollweide')
 
-    # remove white space around the image
-    # plt.subplots_adjust(left=0.01, right=0.99, top=0.95, bottom=0.01)
 
     # rasterized makes the map bitmap while the labels remain vectorial
     # flip longitude to the astro convention
@@ -89,10 +82,18 @@ for width in [18., 12., 8.8]:
     ax.tick_params(axis='x', labelsize=10)
     ax.tick_params(axis='y', labelsize=10)
 
-    # remove longitude tick labels
-    # ax.xaxis.set_ticklabels([])
-    # remove horizontal grid
-    # ax.xaxis.set_ticks([])
+    # remove tick labels
+    ax.xaxis.set_ticklabels([])
+    ax.yaxis.set_ticklabels([])
+    # remove grid
+    ax.xaxis.set_ticks([])
+    ax.yaxis.set_ticks([])
 
     plt.grid(True)
+
+    # remove white space around the image
+    # horizontally, vertically the space is removed directly by savefig bbox_inches="tight"
+    plt.subplots_adjust(left=0.01, right=0.99)
+
+
     plt.savefig("../figures/PlanckFig_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)
