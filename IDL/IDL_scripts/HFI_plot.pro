@@ -2341,7 +2341,7 @@ pro LS_proj2out, planmap, Tmax, Tmin, color_bar, dx, title_display, sunits, $
               CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
               MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, CBLABOFF=CBLABOFF, $
-              GNMCORDOFF=GNMCORDOFF, FNTsz=FNTsz, CBOFF=CBOFF
+              GNMCORDOFF=GNMCORDOFF, FNTsz=FNTsz, CBOFF=CBOFF, MOLCORDOFF=MOLCORDOFF
 
 ;===============================================================================
 ;+
@@ -2419,6 +2419,7 @@ IF N_ELEMENTS(IGRLS) EQ 0 THEN BEGIN
 ENDIF
 IF N_ELEMENTS(CBLABOFF) EQ 0 THEN CBLABOFF = 0d
 IF N_ELEMENTS(GNMCORDOFF) EQ 0 THEN GNMCORDOFF = 0d
+IF N_ELEMENTS(MOLCORDOFF) EQ 0 THEN MOLCORDOFF = 0d
 IF N_ELEMENTS(FNTsz) EQ 0 THEN FNTsz = 8d
 IF N_ELEMENTS(CBOFF) EQ 0 THEN CBOFF = 0d
 ;
@@ -2530,7 +2531,7 @@ if (projtype eq 1) then begin
     ;w_xll = 0.0 & w_xur = 1.0 & w_dx = w_xur - w_xll
     ;w_yll = 0.1 & w_yur = 0.9 & w_dy = w_yur - w_yll
     w_xll = 0.0 & w_xur = 1.0 & w_dx = w_xur - w_xll
-    w_yll = 0.15 & w_yur = 0.95 & w_dy = w_yur - w_yll
+    w_yll = 0.15 + MOLCORDOFF & w_yur = 0.95 + MOLCORDOFF & w_dy = w_yur - w_yll
     w_dx_dy = w_dx / w_dy       ; 1./.8
 ; color bar, position, dimension
     ;cbar_dx = 1./3.
@@ -3091,6 +3092,7 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           ;  I have the values, but not the labels for them
           cb_Tmajors = CBTICKVAL
           cb_Tstr = STRING(CB_Tmajors, format=format)
+          cb_Tstr = STRTRIM(cB_Tstr,2)
           ;
         ENDELSE
         ;
@@ -3190,7 +3192,7 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           ENDIF ELSE BEGIN  ; linear or log scaling now.  
             ;  
             ;  Assume 5 ticks, linearly spaced.
-            Nticks = 5
+            IF CBTICKS GT 1 THEN Nticks = CBTICKS ELSE Nticks = 5
             cb_Tmajors = DINDGEN(Nticks)/DOUBLE(Nticks - 1d)*(Tmax - Tmin) + Tmin
             cb_Tstr = STRING(CB_Tmajors, format=format)
             cb_Tstr = STRTRIM(cb_Tstr,2)
@@ -4058,7 +4060,7 @@ pro LS_mollview, file_in, select_in, $
               CTDIR=CTDIR, $
               CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, MODASINH=MODASINH, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-              LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF
+              LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF, MOLCORDOFF=MOLCORDOFF
 
 ;+
 ; NAME:
@@ -4615,7 +4617,7 @@ LS_proj2out, $
   IGLSIZE=iglsize, RETAIN=retain, TRUECOLORS=truecolors, TRANSPARENT=transparent, CHARTHICK=charthick, $
   JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
   CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF
+  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF, MOLCORDOFF=MOLCORDOFF
 
 w_num = !d.window
 ; restore original color table and PLOTS settings
