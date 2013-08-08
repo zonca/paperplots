@@ -40,7 +40,7 @@
 PRO HFI_plot, x, y, _EXTRA=_EXTRA, DECMODX=DECMODX, DECMODY=DECMODY, $
   Y_DX=Y_DX, Y_DY=Y_DY, X_DX=X_DX, X_DY=X_DY, $
   YTTL_DX=YTTL_DX, YTTL_DY=YTTL_DY, XTTL_DX=XTTL_DX, XTTL_DY=XTTL_DY, $
-  DEBUG=DEBUG, XTICK_GET=XT, YTICK_GET=YT, XLGNAT=XLGNAT, YLGNAT=YLGNAT
+  DEBUG=DEBUG, XTICK_GET=XT, YTICK_GET=YT, XLGNAT=XLGNAT, YLGNAT=YLGNAT, FIXMINUS=FIXMINUS
 ;
 ; This script is to plot to a virtual device to get the y-axis labels, and allow them to be re-plotted with a 90^o anti-clockwise rotation.
 ; ;
@@ -196,11 +196,21 @@ IF YLG THEN BEGIN
   LS_DecRound, YT_exp, DEC=YT_exp_DEC, STR=YT_exp_str_
 ;  YT_str = '10!U'+STRTRIM(STRING(YT_exp),2)+'!N'
   YT_str = '10!U'+YT_exp_str_+'!N'
+  IF KEYWORD_SET(FIXMINUS) THEN BEGIN
+    FOR Minus_i = 0, N_ELEMENTS(YT_STR)-1 DO BEGIN
+      YT_STR[Minus_i] = StrJoin(StrSplit(YT_STR[Minus_i], '-', /Regex, /Extract, /Preserve_Null), '!M-!X!U')
+    ENDFOR
+  ENDIF
   IF KEYWORD_SET(YLGNAT) THEN BEGIN
     ;  Do not want the axis labels in 10^n notation.
     YT_EXP_DEC = CEIL((-1d)*YT_EXP) + DECMODY
     LS_DecRound, YT, DEC=YT_EXP_DEC, STR=YT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI
     ;
+    IF KEYWORD_SET(FIXMINUS) THEN BEGIN
+      FOR Minus_i = 0, N_ELEMENTS(YT_STR)-1 DO BEGIN
+        YT_STR[Minus_i] = StrJoin(StrSplit(YT_STR[Minus_i], '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+      ENDFOR
+    ENDIF
     NegYTicks = WHERE(YT LT 0d, Nyneg)
     IF Nyneg GT 0 THEN YT_STR[NegYTicks] = YT_STR[NegYTicks]+' '
   ENDIF
@@ -213,6 +223,11 @@ ENDIF ELSE BEGIN
   ;If NumDec LT 0 THEN NumDec = 0
   LS_DecRound, YT, DEC=NumDEC, STR=YT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI ; FIXME, need to check all of this. 
   ;
+  IF KEYWORD_SET(FIXMINUS) THEN BEGIN
+    FOR Minus_i = 0, N_ELEMENTS(YT_STR)-1 DO BEGIN
+      YT_STR[Minus_i] = StrJoin(StrSplit(YT_STR[Minus_i], '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+    ENDFOR
+  ENDIF
   NegYTicks = WHERE(YT LT 0d, Nyneg)
   IF Nyneg GT 0 THEN YT_STR[NegYTicks] = YT_STR[NegYTicks]+' '
   ;
@@ -226,10 +241,20 @@ IF XLG THEN BEGIN
   XT_exp_DEC = 0 + DECMODX
   LS_DecRound, XT_exp, DEC=XT_exp_DEC, STR=XT_exp_str_
   XT_str = '10!U'+XT_exp_str_+'!N'
+  IF KEYWORD_SET(FIXMINUS) THEN BEGIN
+    FOR Minus_i = 0, N_ELEMENTS(XT_STR)-1 DO BEGIN
+      XT_STR[Minus_i] = StrJoin(StrSplit(XT_STR[Minus_i], '-', /Regex, /Extract, /Preserve_Null), '!M-!X!U')
+    ENDFOR
+  ENDIF
   IF KEYWORD_SET(XLGNAT) THEN BEGIN
     ;  Do not want the axis labels in 10^n notation.
     XT_EXP_DEC = CEIL((-1d)*XT_EXP) + DECMODX
     LS_DecRound, XT, DEC=XT_EXP_DEC, STR=XT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI
+    IF KEYWORD_SET(FIXMINUS) THEN BEGIN
+      FOR Minus_i = 0, N_ELEMENTS(XT_STR)-1 DO BEGIN
+        XT_STR[Minus_i] = StrJoin(StrSplit(XT_STR[Minus_i], '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+      ENDFOR
+    ENDIF
     NegXTicks = WHERE(XT LT 0d, Nxneg)
     IF Nxneg GT 0 THEN XT_STR[NegXTicks] = XT_STR[NegXTicks]+' '
   ENDIF
@@ -242,10 +267,16 @@ ENDIF ELSE BEGIN
   ;If NumDec LT 0 THEN NumDec = 0
   LS_DecRound, XT, DEC=NumDEC, STR=XT_STR, SCI=SCI, NOSCI=NOSCI, RNDSCI=RNDSCI, WASSCI=WASSCI, ALLOWSCI=ALLOWSCI ; FIXME, need to check all of this. 
   ;
+  IF KEYWORD_SET(FIXMINUS) THEN BEGIN
+    FOR Minus_i = 0, N_ELEMENTS(XT_STR)-1 DO BEGIN
+      XT_STR[Minus_i] = StrJoin(StrSplit(XT_STR[Minus_i], '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+    ENDFOR
+  ENDIF
   NegXTicks = WHERE(XT LT 0d, Nxneg)
   IF Nxneg GT 0 THEN XT_STR[NegXTicks] = XT_STR[NegXTicks]+' '
   ;
 ENDELSE
+;stop
 ;
 _EXTRA_orig = _EXTRA
 IF TAG_EXIST(_EXTRA,'XTITLE') THEN BEGIN
