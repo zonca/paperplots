@@ -315,6 +315,12 @@ IF YLG THEN BEGIN
   ;
   ;CH_lenY = (CH_lenY - 4d - 2d)*0.62d + 2d
   IF KEYWORD_SET(YLGNAT) THEN CH_lenY = CH_lenY ELSE CH_lenY = (CH_lenY - 4d - 2d)*0.62d + 2d
+  IF KEYWORD_SET(FIXMINUS) THEN BEGIN ; the non-printing characters are changing the string length calculations so they need removed from the count.
+    ;
+    NegExpY = WHERE(ALOG10(Ytick_Yval) LT 0d, NnegExpY)
+    IF ((NnegExpY GT 0) AND (~KEYWORD_SET(YLGNAT))) THEN CH_lenY[NegExpY] = CH_lenY[NegExpY] - 6d*0.62d
+    ;
+  ENDIF
   ;
   ;Dev_to_DataY = (ALOG10(!Y.CRANGE[1]) - ALOG10(!Y.CRANGE[0]))/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   Dev_to_DataY = (!Y.CRANGE[1] - !Y.CRANGE[0])/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
@@ -331,6 +337,13 @@ ENDIF ELSE BEGIN
   ;
   Dev_to_DataY = (!Y.CRANGE[1] - !Y.CRANGE[0])/DOUBLE(!P.CLIP[3] - !P.CLIP[1])
   ;
+  IF KEYWORD_SET(FIXMINUS) THEN BEGIN ; the non-printing characters are changing the string length calculations so they need removed from the count.
+    ;
+    NegY = WHERE(Ytick_Yval LT 0d, NnegY)
+    IF (NnegY GT 0) THEN CH_lenY[NegY] = CH_lenY[NegY] - 4d
+    ;
+  ENDIF
+  ;
   CH_strtsY = Ytick_Yval - CH_lenY*CH_YSZ*Dev_to_DataY/2d + Y_DY
   ;
   CH_endsY  = Ytick_Yval + CH_lenY*CH_YSZ*Dev_to_DataY/2d + Y_DY 
@@ -341,6 +354,12 @@ IF XLG THEN BEGIN
   ;
   ;CH_lenX = (CH_lenX - 4d - 2d)*0.62d + 2d
   IF KEYWORD_SET(XLGNAT) THEN CH_lenX = CH_lenX ELSE CH_lenX = (CH_lenX - 4d - 2d)*0.62d + 2d
+  IF KEYWORD_SET(FIXMINUS) THEN BEGIN ; the non-printing characters are changing the string length calculations so they need removed from the count.
+    ;
+    NegExpX = WHERE(ALOG10(Xtick_Xval) LT 0d, NnegExpX)
+    IF ((NnegExpX GT 0) AND (~KEYWORD_SET(XLGNAT))) THEN CH_lenX[NegExpX] = CH_lenX[NegExpX] - 6d*0.62d
+    ;
+  ENDIF
   ;
   ;Dev_to_DataX = (ALOG10(!X.CRANGE[1]) - ALOG10(!X.CRANGE[0]))/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
   Dev_to_DataX = (!X.CRANGE[1] - !X.CRANGE[0])/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
@@ -356,6 +375,13 @@ IF XLG THEN BEGIN
 ENDIF ELSE BEGIN
   ;
   Dev_to_DataX = (!X.CRANGE[1] - !X.CRANGE[0])/DOUBLE(!P.CLIP[2] - !P.CLIP[0])
+  ;
+  IF KEYWORD_SET(FIXMINUS) THEN BEGIN ; the non-printing characters are changing the string length calculations so they need removed from the count.
+    ;
+    NegX = WHERE(Xtick_Xval LT 0d, NnegX)
+    IF (NnegX GT 0) THEN CH_lenX[NegX] = CH_lenX[NegX] - 4d
+    ;
+  ENDIF
   ;
   CH_strtsX = Xtick_Xval - CH_lenX*CH_XSZ*Dev_to_DataX/2d + X_DX
   ;
@@ -1605,7 +1631,7 @@ end
 ;  For more information about HEALPix see http://healpix.jpl.nasa.gov
 ;
 ; -----------------------------------------------------------------------------
-pro LS_oplot_line_with_label, u, v, linelabel=linelabel, putlabel=putlabel, flush=flush, lines=line_type, _extra = oplot_kw, charsize=charsize, LABROT=LABROT
+pro LS_oplot_line_with_label, u, v, linelabel=linelabel, putlabel=putlabel, flush=flush, lines=line_type, _extra = oplot_kw, charsize=charsize, LABROT=LABROT, FIXMINUS=FIXMINUS
 
 lensegment = n_elements(u)
 minseglen = 20
@@ -1638,6 +1664,7 @@ if (do_label) then begin
           xlab = u[middle] + 0.3*chsize * cos((angle-90.)*!dtor)
           ylab = v[middle] + 0.3*chsize * sin((angle-90.)*!dtor)
         ENDIF
+        IF KEYWORD_SET(FIXMINUS) THEN linelabel = StrJoin(StrSplit(linelabel, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
         xyouts, xlab, ylab, linelabel, align=0.5,orientation=angle, noclip=0,charsize=chars
     endif else begin
         ; if label too big, drop it and only plot line
@@ -1670,7 +1697,7 @@ if (nbad eq 0) then begin
         oplot, u, v, _extra = oplot_kw, col=1 ; white background
         oplot, u, v, _extra = oplot_kw, col=0, lines=abs(line_type)
     endif else begin
-        LS_oplot_line_with_label, u, v, linelabel=linelabel, _extra = oplot_kw, lines=line_type, putlabel=1,flush=flush,charsize=charsize, LABROT=LABROT
+        LS_oplot_line_with_label, u, v, linelabel=linelabel, _extra = oplot_kw, lines=line_type, putlabel=1,flush=flush,charsize=charsize, LABROT=LABROT, FIXMINUS=FIXMINUS
     endelse
 endif else begin
 ;    bad = [0,bad,n_elements(u)-1]
@@ -1686,7 +1713,7 @@ endif else begin
                 oplot, u1, v1, _extra = oplot_kw, col=0, lines=abs(line_type)
             endif else begin
                 putlabel = (~already)
-                LS_oplot_line_with_label, u1, v1, linelabel=linelabel, _extra = oplot_kw, lines=line_type, putlabel=putlabel, flush=flush, charsize=charsize, LABROT=LABROT
+                LS_oplot_line_with_label, u1, v1, linelabel=linelabel, _extra = oplot_kw, lines=line_type, putlabel=putlabel, flush=flush, charsize=charsize, LABROT=LABROT, FIXMINUS=FIXMINUS
                 already = 1
             endelse        
         endif
@@ -1755,7 +1782,7 @@ end
 ;
 ; -----------------------------------------------------------------------------
 pro LS_oplot_graticule, graticule, eul_mat, projection=projection, mollweide=mollweide, gnomic=gnomic, cartesian=cartesian, orthographic=orthographic, $
-  flip = flip, _extra = oplot_kw, half_sky=half_sky, coordsys=coordsys, charsize=charsize, reso_rad=reso_rad, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF
+  flip = flip, _extra = oplot_kw, half_sky=half_sky, coordsys=coordsys, charsize=charsize, reso_rad=reso_rad, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF, FIXMINUS=FIXMINUS
 ;+
 ; NAME:
 ;       OPLOT_GRATICULE
@@ -1880,7 +1907,7 @@ case projtype of
             endif
             if (do_ig ) then vv = rotate_coord(vv,in=coordsys[0],out=coordsys[1])
             if (do_rot) then vv = vv # transpose(eul_mat)
-
+            ;linelabel = StrJoin(StrSplit(linelabel, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
             k = where(vv(*,0) gt 0, nk)
             if (nk gt 0) then begin
                 u = vv(k,1)/vv(k,0)
@@ -1892,7 +1919,7 @@ case projtype of
 ;                oplot, flipconv * u, v, _extra = oplot_kw
                 IF !D.name EQ 'PS' THEN device, /HELVETICA, FONT_size=8
                 ;stop
-               if (ng gt 1) then LS_oplot_sphere, flipconv *u[good], v[good], _extra = oplot_kw, linelabel=linelabel,/flush, charsize=charsize
+               if (ng gt 1) then LS_oplot_sphere, flipconv *u[good], v[good], _extra = oplot_kw, linelabel=linelabel,/flush, charsize=charsize, FIXMINUS=FIXMINUS
             endif
         endfor
     endfor
@@ -1940,13 +1967,14 @@ end
                 ;linelabel = strtrim(string(mylat,form=form),2)
                 ang2vec, replicate((90.-mylat)*!DtoR,nv), vector*2*!pi, vv ; parallels
             endif
+            ;linelabel = StrJoin(StrSplit(linelabel, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
             if (do_ig ) then vv = rotate_coord(vv,in=coordsys[0],out=coordsys[1])
             if (do_rot) then vv = vv # transpose(eul_mat)
 
             vec2moll, vv, u, v
             ;oplot_sphere, -flipconv * u, v, _extra = oplot_kw, linelabel=linelabel, charsize=charsize
             IF !D.name EQ 'PS' THEN device, /HELVETICA, FONT_size=8
-            LS_oplot_sphere,  u, v, _extra = oplot_kw, linelabel=linelabel, charsize=charsize, LABROT=LABROT;, /FLUSH
+            LS_oplot_sphere,  u, v, _extra = oplot_kw, linelabel=linelabel, charsize=charsize, LABROT=LABROT, FIXMINUS=FIXMINUS;, /FLUSH
 ;;            oplot_sphere, flipconv * u, v, _extra = oplot_kw
         endfor
     endfor
@@ -1973,7 +2001,7 @@ end
             endif
             if (do_ig ) then vv = rotate_coord(vv,in=coordsys[0],out=coordsys[1])
             if (do_rot) then vv = vv # transpose(eul_mat)
-
+            ;linelabel = StrJoin(StrSplit(linelabel, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
             for sign = 1,1-nd,-2 do begin ; either (1,-1) or (1)
                 k = where(vv[*,0]*sign ge 0, nk)
                 if (nk gt 0) then begin
@@ -2003,7 +2031,7 @@ end
             endif
             if (do_ig ) then vv = rotate_coord(vv,in=coordsys[0],out=coordsys[1])
             if (do_rot) then vv = vv # transpose(eul_mat)
-
+            ;linelabel = StrJoin(StrSplit(linelabel, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
             phi = atan(vv[*,1],vv[*,0]) ; in [0,2pi]
       theta = asin(vv[*,2])       ; in [0,pi]
             ; OPLOT,-flipconv*phi,theta, _extra = oplot_kw
@@ -2014,7 +2042,7 @@ end
                                 ; reorder points to have one continuous segment across the plot
             bad = where(good-shift(good,1) ne 1, nbad)
             if (nbad gt 1) then good = shift(good, bad[1])
-            if (ng gt 1) then oplot_sphere, flipconv *phi[good], theta[good], _extra = oplot_kw, linelabel=linelabel,charsize=charsize
+            if (ng gt 1) then LS_oplot_sphere, flipconv *phi[good], theta[good], _extra = oplot_kw, linelabel=linelabel,charsize=charsize, FIXMINUS=FIXMINUS
         endfor
     endfor
 end
@@ -2372,7 +2400,7 @@ pro LS_proj2out, planmap, Tmax, Tmin, color_bar, dx, title_display, sunits, $
               CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
               MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, CBLABOFF=CBLABOFF, $
-              GNMCORDOFF=GNMCORDOFF, GNMOFF=GNMOFF, FNTsz=FNTsz, CBOFF=CBOFF, MOLOFF=MOLOFF, CRTCORDOFF=CRTCORDOFF, CRTOFF=CRTOFF
+              GNMCORDOFF=GNMCORDOFF, GNMOFF=GNMOFF, FNTsz=FNTsz, CBOFF=CBOFF, MOLOFF=MOLOFF, MOLCORDOFF=MOLCORDOFF, CRTCORDOFF=CRTCORDOFF, CRTOFF=CRTOFF, FIXMINUS=FIXMINUS
 
 ;===============================================================================
 ;+
@@ -2452,6 +2480,7 @@ IF N_ELEMENTS(CBLABOFF) EQ 0 THEN CBLABOFF = 0d
 IF N_ELEMENTS(GNMCORDOFF) EQ 0 THEN GNMCORDOFF = 0d
 IF N_ELEMENTS(GNMOFF) EQ 0 THEN GNMOFF = 0d
 IF N_ELEMENTS(MOLOFF) EQ 0 THEN MOLOFF = 0d
+IF N_ELEMENTS(MOLCORDOFF) EQ 0 THEN MOLCORDOFF = 0d
 IF N_ELEMENTS(CRTCORDOFF) EQ 0 THEN CRTCORDOFF = 0d
 IF N_ELEMENTS(CRTOFF) EQ 0 THEN CRTOFF = 0d
 IF N_ELEMENTS(FNTsz) EQ 0 THEN FNTsz = 8d
@@ -3105,6 +3134,7 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
       if ((Tmax - Tmin) ge 50 and MAX(ABS([Tmax,Tmin])) le 1.e5) then format='(i8)'
       if ((Tmax - Tmin) ge 5  and MAX(ABS([Tmax,Tmin])) le 1.e2) then format='(f6.1)'
       strmin = STRING(Tmin,format=format)
+      IF KEYWORD_SET(FIXMINUS) THEN strmin = StrJoin(StrSplit(strmin, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
       strmax = STRING(Tmax,format=format)
       ;
       ;  Decide how many orders of magnitude are spanned in the colourbar
@@ -3132,6 +3162,11 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           cb_Tstr = STRING(CB_Tmajors, format=format)
           cb_Tstr = STRTRIM(cB_Tstr,2)
           ;
+          FOR iiii = 0, N_ELEMENTS(cb_Tstr) - 1 DO BEGIN
+              Str_ = cb_Tstr[iiii]
+              IF KEYWORD_SET(FIXMINUS) THEN cb_Tstr[iiii] = StrJoin(StrSplit(Str_, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+          ENDFOR
+          IF KEYWORD_SET(FIXMINUS) THEN strmin = StrJoin(StrSplit(strmin, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
         ENDELSE
         ;
         CBTICKLBL = cb_Tstr
@@ -3245,6 +3280,12 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
         ENDELSE 
       ;ENDELSE  ; I now have cb_Tmajors, cb_Tstr, and possibly cb_Tminors
       ;
+      FOR iiii = 0, N_ELEMENTS(cb_Tstr) - 1 DO BEGIN
+          Str_ = cb_Tstr[iiii]
+          IF KEYWORD_SET(FIXMINUS) THEN cb_Tstr[iiii] = StrJoin(StrSplit(Str_, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+      ENDFOR
+      IF KEYWORD_SET(FIXMINUS) THEN strmin = StrJoin(StrSplit(strmin, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+;stop
       IF ~KEYWORD_SET(CBTICKVAL) THEN CBTICKVAL = cb_Tmajors
       IF ~KEYWORD_SET(CBTICKLBL) THEN CBTICKLBL = cb_Tstr
       ;
@@ -3314,7 +3355,12 @@ IF KEYWORD_SET(CBTICKS) THEN BEGIN  ; a set number of colourbar tick intervals w
           IF !D.name EQ 'PS' THEN device, /HELVETICA, FONT_size=FNTsz
           XYOUTS, Cbar_xll + cbar_dx/2d, cbar_yll - cbar_dy/2d - DOUBLE(!D.Y_CH_SIZE)/DOUBLE(!D.Y_SIZE) + CBLABOFF, CBLBL, $
                 ALIGN=0.5,/NORMAL, chars=1.3*charsfactor, charthick=mycharthick 
-          XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(strmin,2)+' ',$
+          MinStr = STRTRIM(strmin,2)
+          IF DOUBLE(MinStr) LT 0d THEN BEGIN
+             MinStr = StrJoin(StrSplit(MinStr, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+          ENDIF
+;stop
+          XYOUTS, cbar_xll, cbar_yll,'!X'+STRTRIM(MinStr,2)+' ',$
                 ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
           XYOUTS, cbar_xur, cbar_yll,' '+STRTRIM(strmax,2)+' ',$
                 ALIGN=0.,/normal, chars=1.3*charsfactor, charthick=mycharthick
@@ -3333,6 +3379,7 @@ ENDIF ELSE BEGIN  ; just plot the edge values, do not place ticks on the colorba
       if ((Tmax - Tmin) ge 50 and MAX(ABS([Tmax,Tmin])) le 1.e5) then format='(i8)'
       if ((Tmax - Tmin) ge 5  and MAX(ABS([Tmax,Tmin])) le 1.e2) then format='(f6.1)'
       strmin = STRING(Tmin,format=format)
+      strmin = StrJoin(StrSplit(strmin, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
       strmax = STRING(Tmax,format=format)
       ;XYOUTS, cbar_xll, cbar_yll,'!6'+STRTRIM(strmin,2)+' ',$
       ;        ALIGN=1.,/normal, chars=1.3*charsfactor, charthick=mycharthick
@@ -3387,7 +3434,9 @@ if (do_gnom) then begin
         if (undefined(rot_ang)) then rot_ang = [0.,0.,0.] else rot_ang = ([rot_ang,0,0])(0:2)
         rot_0 = STRTRIM(STRING(rot_ang(0),form='(f6.1)'),2)
         rot_1 = STRTRIM(STRING(rot_ang(1),form='(f6.1)'),2)
-        XYOUTS,x_aspos,y_aspos,'!X('+rot_0+', '+rot_1+') '+decode_coord(coord_out),/normal,align=0.5
+        rot_0_ = StrJoin(StrSplit(rot_0, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+        rot_1_ = StrJoin(StrSplit(rot_1, '-', /Regex, /Extract, /Preserve_Null), '!M-!X')
+        XYOUTS,x_aspos,y_aspos,'!X('+rot_0_+', '+rot_1_+') '+decode_coord(coord_out),/normal,align=0.5
     endif
 
 ; ; cross in the middle of plot
@@ -3418,7 +3467,7 @@ endif else begin
         glabelsize = charsfactor * (keyword_set(glsize) ? glsize : 0 )
         ;stop
         LS_oplot_graticule, graticule, eul_mat, projection=proj_small, flip = flip, thick = 1.*thick_dev, color = !p.color, $
-          half_sky=half_sky, linestyle=GRLS, charsize=glabelsize, reso_rad=dx, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF
+          half_sky=half_sky, linestyle=GRLS, charsize=glabelsize, reso_rad=dx, GRMIN=GRMIN, GRMAX=GRMAX, LATLONGDIFF=LATLONGDIFF, FIXMINUS=FIXMINUS
     endif 
 
 ;  the graticule in input coordinates
@@ -3426,7 +3475,7 @@ endif else begin
         lines_ig = 2*grattwice  ; either 0 or 2
         iglabelsize = charsfactor * (keyword_set(iglsize) ? iglsize : 0 )
         LS_oplot_graticule, igraticule, eul_mat, projection=proj_small, flip = flip, thick = 1.*thick_dev, color = !p.color, $
-          half_sky=half_sky, linestyle=IGRLS, coordsys=[coord_in,coord_out], charsize=iglabelsize, reso_rad=dx, GRMIN=IGRMIN, GRMAX=IGRMAX, LATLONGDIFF=LATLONGDIFF
+          half_sky=half_sky, linestyle=IGRLS, coordsys=[coord_in,coord_out], charsize=iglabelsize, reso_rad=dx, GRMIN=IGRMIN, GRMAX=IGRMAX, LATLONGDIFF=LATLONGDIFF, FIXMINUS=FIXMINUS
     endif 
 
 ; outlines on the map
@@ -4366,7 +4415,7 @@ pro LS_mollview, file_in, select_in, $
               CTDIR=CTDIR, $
               CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, MODASINH=MODASINH, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-              LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF, MAPOFF=MAPOFF
+              LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF, MAPOFF=MAPOFF, CORDOFF=CORDOFF
 
 ;+
 ; NAME:
@@ -4923,7 +4972,7 @@ LS_proj2out, $
   IGLSIZE=iglsize, RETAIN=retain, TRUECOLORS=truecolors, TRANSPARENT=transparent, CHARTHICK=charthick, $
   JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
   CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, $
-  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF, MOLOFF=MAPOFF
+  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF, MOLOFF=MAPOFF, MOLCORDOFF=CORDOFF, FIXMINUS=FIXMINUS
 
 w_num = !d.window
 ; restore original color table and PLOTS settings
@@ -5350,7 +5399,7 @@ PRO LS_gnomview, file_in, select_in, $
               vector_scale = vector_scale, $
               CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
               CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, CBLABOFF=CBLABOFF, $
-              MODASINH=MODASINH, LATLONGDIFF=LATLONGDIFF, CORDOFF=CORDOFF, MAPOFF=MAPOFF, FNTsz=FNTsz, CBOFF=CBOFF
+              MODASINH=MODASINH, LATLONGDIFF=LATLONGDIFF, CORDOFF=CORDOFF, MAPOFF=MAPOFF, FNTsz=FNTsz, CBOFF=CBOFF, FIXMINUS=FIXMINUS
 
 ;+
 ; for extended description see mollview or the paper documentation
@@ -5457,7 +5506,7 @@ LS_proj2out, $
   IGLSIZE=iglsize, RETAIN=retain, TRUECOLORS=truecolors, TRANSPARENT=transparent, $
   CHARTHICK=charthick, JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
   CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, CBLABOFF=CBLABOFF, $
-  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, GNMCORDOFF=CORDOFF, GNMOFF=MAPOFF, FNTsz=FNTsz, CBOFF=CBOFF
+  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, GNMCORDOFF=CORDOFF, GNMOFF=MAPOFF, FNTsz=FNTsz, CBOFF=CBOFF, FIXMINUS=FIXMINUS
 
 w_num = !d.window
 ; restore original color table and PLOTS settings
@@ -5657,7 +5706,7 @@ LS_proj2out, $
   SILENT=silent, GLSIZE = glsize, IGLSIZE = iglsize, RETAIN=retain, TRUECOLORS=truecolors, CHARTHICK=charthick, $
   JPEG=jpeg, CTDIR=CTDIR, CTFILE=CTFILE, GRMIN=GRMIN, GRMAX=GRMAX, GRLS=GRLS, IGRMIN=IGRMIN, IGRMAX=IGRMAX, IGRLS=IGRLS, $
   CBLBL=CBLBL, CBLIN=CBLIN, CBTICKS=CBTICKS, CBTICKVAL=CBTICKVAL, CBTICKLBL=CBTICKLBL, CBTICKLAB=CBTICKLAB, CBOUT=CBOUT, CBLABOFF=CBLABOFF, $
-  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF, CRTCORDOFF=CORDOFF, CRTOFF=MAPOFF
+  MODASINH=MODASINH, HIST_EQUAL=HIST_EQUAL, ASINH=ASINH, LOG=LOG, LATLONGDIFF=LATLONGDIFF, FNTsz=FNTsz, CBOFF=CBOFF, CRTCORDOFF=CORDOFF, CRTOFF=MAPOFF, FIXMINUS=FIXMINUS
 
 w_num = !d.window
 ; restore original color table and PLOTS settings
