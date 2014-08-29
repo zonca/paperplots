@@ -2,7 +2,10 @@ import numpy as np
 
 ############### CMB colormap
 from matplotlib.colors import ListedColormap
-colombi1_cmap = ListedColormap(np.loadtxt("../../data/Planck_Parchment_RGB.txt")/255.)
+import os
+this_dir, this_filename = os.path.split(__file__)
+DATA_PATH = os.path.join(this_dir, "..", "..", "data")
+colombi1_cmap = ListedColormap(np.loadtxt(os.path.join(DATA_PATH, "Planck_Parchment_RGB.txt"))/255.)
 colombi1_cmap.set_bad("gray") # color of missing pixels
 colombi1_cmap.set_under("white") # color of background, necessary if you want to use
 # this colormap directly with hp.mollview(m, cmap=colombi1_cmap)
@@ -10,7 +13,7 @@ colombi1_cmap.set_under("white") # color of background, necessary if you want to
 ############### Universal colormap
 # setup linear colormap
 from matplotlib.colors import ListedColormap
-planck_freqmap_cmap = ListedColormap(np.loadtxt("../../data/Planck_FreqMap_RGB.txt")/255.)
+planck_freqmap_cmap = ListedColormap(np.loadtxt(os.path.join(DATA_PATH, "Planck_FreqMap_RGB.txt"))/255.)
 planck_freqmap_cmap.set_bad("gray") # color of missing pixels
 planck_freqmap_cmap.set_under("white") # color of background, necessary if you want to use
 
