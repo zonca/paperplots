@@ -53,12 +53,18 @@ map_offsets = {
     353 : -681 + 250,
 }
 
+component = ["I_STOKES"]
+smoothing_degrees = 1
+
 c = 299792458  # speed of light in m/s
 K_b = 1.3806488e-23  # Boltzmann constant in J/K
 
 for freq in [30, 44, 70, 100, 143, 217, 353, 545, 857]: 
 
-    m = hp.ud_grade(hp.read_map(glob("NEVERCOMMIT/*_%d_*.fits" % freq)[0]), nside) * 1e6 + map_offsets.get(freq, 0)
+    m = hp.ud_grade(hp.read_map(glob("NEVERCOMMIT/*_%03d_*.fits" % freq)[0], field=component), nside) * 1e6 + map_offsets.get(freq, 0)
+    if smoothing_degrees:
+        m = hp.smoothing(m, fwhm=np.radians(smoothing_degrees))
+
     grid_map = m[grid_pix]
 
     unit = r"$\mathrm{\mu K}$"
