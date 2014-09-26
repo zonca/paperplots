@@ -61,7 +61,10 @@ K_b = 1.3806488e-23  # Boltzmann constant in J/K
 
 for freq in [30, 44, 70, 100, 143, 217, 353, 545, 857]: 
 
-    m = hp.ud_grade(hp.read_map(glob("NEVERCOMMIT/*_%03d_*.fits" % freq)[0], field=component), nside) * 1e6 + map_offsets.get(freq, 0)
+    # Use glob to find filename of the map
+    filename = glob("NEVERCOMMIT/*_%03d_*.fits" % freq)[0]
+    m = hp.ud_grade(hp.read_map(filename, field=component), nside) * 1e6
+    m += map_offsets.get(freq, 0)
     if smoothing_degrees:
         m = hp.smoothing(m, fwhm=np.radians(smoothing_degrees))
 
