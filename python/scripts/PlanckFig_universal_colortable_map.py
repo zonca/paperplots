@@ -52,12 +52,14 @@ cmap = planck_universal_cmap
 colormaptag = "universal_"
 width = 18
 
+# correction for Cosmic Infrared Background
 map_offsets = {
     100 : -12.29,
     143 : -21.26,
     217 : -68.2547,
     353 : -452.605,
 }
+map_offsets = {} # NO CORRECTION FOR CIB
 
 component = ["I_STOKES"]
 smoothing_degrees = 1
