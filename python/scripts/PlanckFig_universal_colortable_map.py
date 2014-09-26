@@ -11,6 +11,11 @@ the output plots can then be aggregated in a single page using ../figures/FreqMa
 http://github.com/zonca/paperplots
 """
 
+def remove_monopole_outside_mask(m, mask):
+    m_mask = hp.ma(m)
+    m_mask.mask = mask
+    return m - hp.fit_monopole(m_mask, gal_cut=75)
+
 # 10^ formatter
 from matplotlib import ticker
 def format_func(x, pos):
@@ -35,6 +40,10 @@ longitude = np.radians(np.linspace(-180, 180, xsize))
 latitude = np.radians(np.linspace(-90, 90, ysize))
 
 nside = 1024
+monopole_fit_mask_filename = "NEVERCOMMIT/HFI_PowerSpect_Mask_2048_R1.10.fits"
+# in healpy masks are 1 for bad pixels, 0 for good pixels
+monopole_fit_mask = np.logical_not(np.floor(hp.ud_grade(hp.read_map(monopole_fit_mask_filename), nside)))
+
 # project the map to a rectangular matrix xsize x ysize
 PHI, THETA = np.meshgrid(phi, theta)
 grid_pix = hp.ang2pix(nside, THETA, PHI)
@@ -61,6 +70,8 @@ for freq in [30, 44, 70, 100, 143, 217, 353, 545, 857]:
     # Use glob to find filename of the map
     filename = glob("NEVERCOMMIT/*_%03d_*.fits" % freq)[0]
     m = hp.ud_grade(hp.read_map(filename, field=component), nside) * 1e6
+    if freq < 400:
+        m = remove_monopole_outside_mask(m, monopole_fit_mask)
     m += map_offsets.get(freq, 0)
     if smoothing_degrees:
         m = hp.smoothing(m, fwhm=np.radians(smoothing_degrees))
