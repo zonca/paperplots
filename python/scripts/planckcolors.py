@@ -3,19 +3,37 @@ import numpy as np
 ############### CMB colormap
 from matplotlib.colors import ListedColormap
 import os
+import glob
+import exceptions
 this_dir, this_filename = os.path.split(__file__)
 DATA_PATH = os.path.join(this_dir, "..", "..", "data")
-colombi1_cmap = ListedColormap(np.loadtxt(os.path.join(DATA_PATH, "Planck_Parchment_RGB.txt"))/255.)
-colombi1_cmap.set_bad("gray") # color of missing pixels
-colombi1_cmap.set_under("white") # color of background, necessary if you want to use
-# this colormap directly with hp.mollview(m, cmap=colombi1_cmap)
+
+def list_available_colormaps():
+    return map(os.path.basename, glob.glob(os.path.join(DATA_PATH, "*.txt")))
+
+def load_colormap(filename):
+    """Load a colormap defined in a text file
+
+    filename is the .txt file name located in the
+    data/ path, not the full path.
+    list_available_colormaps() lists the available color tables
+    """
+    try:
+        colormap = ListedColormap(np.loadtxt(os.path.join(DATA_PATH, filename))/255.)
+    except exceptions.IOError:
+        print("Cannot load colormap, available colormaps: \n* " + "\n* ".join(list_available_colormaps()))
+        raise
+    colormap.set_bad("gray") # color of missing pixels
+    colormap.set_under("white") # color of background, necessary if you want to use
+    # this colormap directly with hp.mollview(m, cmap=colormap)
+    return colormap
+
+colombi1_cmap = load_colormap("Planck_Parchment_RGB.txt")
 
 ############### Universal colormap
 # setup linear colormap
 from matplotlib.colors import ListedColormap
-planck_freqmap_cmap = ListedColormap(np.loadtxt(os.path.join(DATA_PATH, "Planck_FreqMap_RGB.txt"))/255.)
-planck_freqmap_cmap.set_bad("gray") # color of missing pixels
-planck_freqmap_cmap.set_under("white") # color of background, necessary if you want to use
+planck_freqmap_cmap = load_colormap("Planck_FreqMap_RGB.txt")
 
 # setup nonlinear colormap
 from matplotlib.colors import LinearSegmentedColormap
