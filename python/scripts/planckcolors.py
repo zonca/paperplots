@@ -37,8 +37,8 @@ planck_freqmap_cmap = load_colormap("Planck_FreqMap_RGB.txt")
 
 # setup nonlinear colormap
 from matplotlib.colors import LinearSegmentedColormap
-class PlanckUniversalColormap(LinearSegmentedColormap):
-    name = "planckuniv"
+class GlogColormap(LinearSegmentedColormap):
+    name = "glog_colormap"
     def __init__(self, cmap):
         self.cmap = cmap
         self.N = self.cmap.N
@@ -56,4 +56,4 @@ class PlanckUniversalColormap(LinearSegmentedColormap):
     def modsinh(self, x):
         return np.log10(0.5*(x + np.sqrt(x**2 + 4)))
 
-planck_universal_cmap = PlanckUniversalColormap(planck_freqmap_cmap)
+planck_universal_cmap = GlogColormap(planck_freqmap_cmap)
