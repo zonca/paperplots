@@ -4,7 +4,7 @@ import healpy as hp
 m = hp.ma(hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)) * 1e3 # muK
 nside = hp.npix2nside(len(m))
 
-from planckcolors import colombi1_cmap 
+import planckcolors
 
 use_mask = False
 
@@ -50,7 +50,16 @@ class ThetaFormatterShiftPi(GeoAxes.ThetaFormatter):
             x += 2*np.pi
         return GeoAxes.ThetaFormatter.__call__(self, x, pos)
 
-cmap = colombi1_cmap
+# Official colorscale for CMB
+cmap = planckcolors.colombi1_cmap
+# Universal non-linear colorscale
+#cmap = planckcolors.planck_universal_cmap
+# Other colorscales, available in ../../data
+#cmap = planckcolors.load_colormap("color_table_11_BlueRed.txt")
+# Other colorscale, made nonlinear with Glog
+cmap = planckcolors.GlogColormap(planckcolors.load_colormap("color_table_11_BlueRed.txt"))
+cmap = planckcolors.GlogColormap(planckcolors.load_colormap("color_table_0_BlackWhiteLinear.txt"))
+
 colormaptag = "colombi1_"
 
 for width in [18., 12., 8.8]:
@@ -90,10 +99,5 @@ for width in [18., 12., 8.8]:
     ax.yaxis.set_ticks([])
 
     plt.grid(True)
-
-    # remove white space around the image
-    # horizontally, vertically the space is removed directly by savefig bbox_inches="tight"
-    plt.subplots_adjust(left=0.01, right=0.99)
-
 
     plt.savefig("../figures/PlanckFig_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)
