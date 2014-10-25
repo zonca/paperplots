@@ -39,15 +39,17 @@ planck_freqmap_cmap = load_colormap("Planck_FreqMap_RGB.txt")
 from matplotlib.colors import LinearSegmentedColormap
 class GlogColormap(LinearSegmentedColormap):
     name = "glog_colormap"
-    def __init__(self, cmap):
+    def __init__(self, cmap, vmin=-1e3, vmax=1e7):
         self.cmap = cmap
         self.N = self.cmap.N
+        self.vmin = vmin
+        self.vmax = vmax
 
     def is_gray(self):
         return False
 
     def __call__(self, xi, alpha=1.0, **kw):
-        x = xi * (1e7+1e3) - 1e3
+        x = xi * (self.vmax - self.vmin) + self.vmin
         yi = self.modsinh(x)
         # range 0-1
         yi = (yi + 3)/10.
