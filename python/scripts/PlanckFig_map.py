@@ -75,7 +75,7 @@ colormaptag = "colombi1_"
 
 for width in [18., 12., 8.8]:
 
-    fig = plt.figure(figsize=(cm2inch(width), cm2inch(width)))
+    fig = plt.figure(figsize=(cm2inch(width), cm2inch(width)/(3./2.)))
     # matplotlib is doing the mollveide projection
     ax = fig.add_subplot(111,projection='mollweide')
 
@@ -93,7 +93,7 @@ for width in [18., 12., 8.8]:
 
 
     # colorbar
-    cb = fig.colorbar(image, orientation='horizontal', shrink=.4, pad=0.05, ticks=[vmin, vmax])
+    cb = fig.colorbar(image, orientation='horizontal', shrink=.6, pad=0.05, ticks=[vmin, vmax])
     cb.ax.xaxis.set_label_text(unit)
     cb.ax.xaxis.labelpad = -8
     # workaround for issue with viewers, see colorbar docstring
@@ -109,6 +109,10 @@ for width in [18., 12., 8.8]:
     ax.xaxis.set_ticks([])
     ax.yaxis.set_ticks([])
 
+    # remove white space around figure
+    spacing = 0.01
+    plt.subplots_adjust(bottom=spacing, top=1-spacing, left=spacing, right=1-spacing)
+
     plt.grid(True)
 
-    plt.savefig("../figures/PlanckFig_map_" + colormaptag + "python_%dmm.pdf" % int(width*10), bbox_inches='tight', pad_inches=0.02)
+    plt.savefig("../figures/PlanckFig_map_" + str(comp) + "_" + colormaptag + "python_%dmm.pdf" % int(width*10))#bbox_inches='tight', pad_inches=0.02)
