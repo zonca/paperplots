@@ -69,7 +69,7 @@ cmap = planckcolors.colombi1_cmap
 # Other colorscales, available in ../../data
 #cmap = planckcolors.load_colormap("color_table_11_BlueRed.txt")
 # Other colorscale, made nonlinear with Glog, needs to setup vmin and vmax
-cmap = planckcolors.GlogColormap(planckcolors.load_colormap("color_table_0_BlackWhiteLinear.txt"), vmin=vmin, vmax=vmax)
+#cmap = planckcolors.GlogColormap(planckcolors.load_colormap("color_table_0_BlackWhiteLinear.txt"), vmin=vmin, vmax=vmax)
 
 colormaptag = "colombi1_"
 
