@@ -1,7 +1,12 @@
 from setup_matplotlib import *
 import healpy as hp
 
-m = hp.ma(hp.read_map("../../data/wmap_band_iqumap_r9_7yr_W_v4.fits", 0)) * 1e3 # muK
+
+filename = "../../data/wmap_band_iqumap_r9_7yr_W_v4.fits"
+vmin = -1e2; vmax = 1e2
+comp = 1 # 0->T 1->Q 2->U
+m = hp.ma(hp.read_map(filename, [comp])) * 1e3
+
 nside = hp.npix2nside(len(m))
 
 import planckcolors
