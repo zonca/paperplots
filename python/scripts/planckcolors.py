@@ -4,7 +4,6 @@ import numpy as np
 from matplotlib.colors import ListedColormap
 import os
 import glob
-import exceptions
 this_dir, this_filename = os.path.split(__file__)
 DATA_PATH = os.path.join(this_dir, "..", "..", "data")
 
@@ -20,7 +19,7 @@ def load_colormap(filename):
     """
     try:
         colormap = ListedColormap(np.loadtxt(os.path.join(DATA_PATH, filename))/255.)
-    except exceptions.IOError:
+    except IOError:
         print("Cannot load colormap, available colormaps: \n* " + "\n* ".join(list_available_colormaps()))
         raise
     colormap.set_bad("gray") # color of missing pixels
