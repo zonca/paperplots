@@ -5,6 +5,7 @@ import healpy as hp
 filename = "../../data/wmap_band_iqumap_r9_7yr_W_v4.fits"
 vmin = -1e2; vmax = 1e2
 comp = 1 # 0->T 1->Q 2->U
+unit = r"$\mathrm{K}$"
 m = hp.ma(hp.read_map(filename, [comp])) * 1e3
 
 nside = hp.npix2nside(len(m))
@@ -13,6 +14,16 @@ import planckcolors
 
 use_mask = False
 
+def remove_monopole_outside_mask(m, mask):
+    m_mask = hp.ma(m)
+    m_mask.mask = mask
+    return m - hp.fit_monopole(m_mask, gal_cut=75)
+
+monopole_fit_mask_filename = "../../data/wmap_ext_temperature_analysis_mask_r9_7yr_v4.fits"
+# in healpy masks are 1 for bad pixels, 0 for good pixels
+monopole_fit_mask = np.logical_not(np.floor(hp.ud_grade(hp.read_map(monopole_fit_mask_filename), nside)))
+m = remove_monopole_outside_mask(m, monopole_fit_mask)
+
 # using directly matplotlib instead of mollview has higher
 # quality output, I plan to merge this into healpy
 
@@ -20,10 +31,6 @@ use_mask = False
 xsize = 2000
 ysize = xsize/2.
 
-unit = r"$\mathrm{\mu K}$"
-
-# this is the mollview min and max
-vmin = -1e3; vmax = 1e3
 
 theta = np.linspace(np.pi, 0, ysize)
 phi   = np.linspace(-np.pi, np.pi, xsize)
